@@ -1,0 +1,58 @@
+info.csv:
+    - id
+    - name
+    - position
+    - height
+    - weight
+    - nt
+    - countryob if nt == NULL
+    - club
+    - age
+
+For every down file:
+    - id
+    - season
+    - country
+    - comp_level
+    - squad
+    - age (age depends on the season)
+
+misc.csv:
+    - cards_yellow
+    - cards_red
+    - fouls
+    - offsides
+    - interception
+    - tackles_won
+    - ball_recoveries
+gca.csv:
+    - gca (all kind of actions that lead to a goal)
+    - gca_per90
+defense.csv:
+    - tackles
+    - pressures (number of time the player put pressure on an opposing player who is receiving, carrying or releasing the ball)
+    - dribbled_past ( number of time the player got dribbled past)
+    - blocks
+    - blocked_shots
+keeper.csv:
+    - goal_against_gk
+    - goals_against_per90
+    - shots_on_target_against
+    - save_pct
+    - clean_sheets
+    - clean_sheets_pct
+    (Too much Null Values)
+    - pens_att_gk
+    - pens_save_pct
+keeper_adv.csv:
+    - passes_gk
+    - pct_passes_launched_gk
+passing.csv:
+    - passes
+    - passes_pct
+sam
+    - nothing
+playing_time.csv:
+    - "games", "minutes", "minutes_per_game", "points_per_match"
+shooting.csv:
+    - "goals", "shots_total", "shots_on_target", "shots_on_target_pct", "goals_per_shot", "goals_per_shot_on_target"
