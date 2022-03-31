@@ -33,7 +33,7 @@ def select_columns_from_files():
 # keep interesting columns of the file
 # select_column_from_files()
 
-all_df = get_all_dataframes("out/")
+
 
 
 
