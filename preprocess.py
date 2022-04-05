@@ -5,7 +5,7 @@ import glob
 def get_all_dataframes(path):
     all_df = {}
     for filename in glob.glob(f"{path}*.csv"):
-        name = filename.split("/")[1].split(".")[0]
+        name = filename.split("\\")[1].split(".")[0]
         all_df[name] = pd.read_csv(filename)
     return all_df
 
@@ -31,7 +31,7 @@ def select_columns_from_files():
         create_new_csv(name, all_df[name], columns)
 
 # keep interesting columns of the file
-# select_column_from_files()
+#select_columns_from_files()
 
 
 
