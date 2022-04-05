@@ -1,11 +1,12 @@
 import pandas as pd
 import glob
-
+import platform
 
 def get_all_dataframes(path):
+    os_char = {'Linux': '/', 'Darwin': '/', 'Windows': '\\'}
     all_df = {}
     for filename in glob.glob(f"{path}*.csv"):
-        name = filename.split("\\")[1].split(".")[0]
+        name = filename.split(os_char[platform.system()])[1].split(".")[0]
         all_df[name] = pd.read_csv(filename)
     return all_df
 
