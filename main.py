@@ -85,9 +85,9 @@ def plot_a_club_players_cards(club_name, season, comp_level):
     Input('club_dropdown', 'value'),
 )
 def update_dropdowns(club_name):
-    seasons = all_df["misc"]["season"].loc[all_df["misc"]["squad"] == club_name].unique()
+    seasons = all_df["misc"].sort_values("season", ascending=False)["season"].loc[all_df["misc"]["squad"] == club_name].unique()
     season = seasons[0]
-    comp_levels = all_df["misc"]["comp_level"].loc[all_df["misc"]["squad"] == club_name].unique()
+    comp_levels = all_df["misc"].sort_values("comp_level")["comp_level"].loc[all_df["misc"]["squad"] == club_name].unique()
     comp_level = comp_levels[0]
     return season, seasons, comp_level, comp_levels
 
@@ -115,8 +115,8 @@ app.layout = html.Div(children=[
             html.Div(
                 className="four columns", children=[
                 dcc.Dropdown(
-                    all_df["info"]["club"].unique(),
-                    all_df["info"]["club"].unique()[0],
+                    all_df["misc"].sort_values("squad")["squad"].unique(),
+                    all_df["misc"].sort_values("squad")["squad"].unique()[0],
                     id='club_dropdown',
                     placeholder="Select a Club"
                 ),
@@ -124,8 +124,6 @@ app.layout = html.Div(children=[
             html.Div(
                 className="four columns", children=[
                 dcc.Dropdown(
-                    all_df["misc"]["season"].loc[all_df["misc"]["squad"] == all_df["info"]["club"].iloc[0]].unique(),
-                    all_df["misc"]["season"].loc[all_df["misc"]["squad"] == all_df["info"]["club"].iloc[0]].unique()[0],
                     id='season_dropdown',
                     placeholder="Select a season",
                 ),
@@ -133,8 +131,6 @@ app.layout = html.Div(children=[
             html.Div(
                 className="four columns", children=[
                 dcc.Dropdown(
-                    all_df["misc"]["comp_level"].loc[all_df["misc"]["squad"] == all_df["info"]["club"].iloc[0]].unique(),
-                    all_df["misc"]["comp_level"].loc[all_df["misc"]["squad"] == all_df["info"]["club"].iloc[0]].unique()[0],
                     id='comp_level_dropdown',
                     placeholder="Select a competitive level"
                 ),
