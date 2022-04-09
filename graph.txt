@@ -1,0 +1,42 @@
+filter:
+    - Competitive level
+    - Position
+    - Column name (based on position)
+    - List Relevant Players (based on Season -> last year season result)
+
+4 categories :
+    - for all:
+        throughout season + age
+    - attackant:
+        - Nb of Goals / scoring percentage on attempts throughout seasons
+        - Yellow /red cards troughout seasons
+        - Assist % / successful passes %
+        - Height-Weight
+    - mid fielder:
+        - Yellow /red cards troughout seasons
+        - Assist % / successful passes %
+        - Nb of Goals / scoring percentage on attempts throughout seasons
+        - dribbled past / blocks
+    - defender:
+        - Yellow /red cards troughout seasons
+        - Assist % / successful passes %
+        - tackles / tackles won
+        - dribbled past / blocks
+    - goal keeper:
+        - Yellow /red cards troughout seasons
+        - clean sheet %
+        - saves % / shots_against
+        - pen saved % / pens attempts - pens missed
+
+Graphs:
+    - Yellow /red cards troughout seasons (Yishen)
+    - Height-Weight (Yishen)
+    - dribbled past / blocks (Yishen)
+
+    - Assist % / successful passes % (Alexander)
+    - tackles / tackles won (Alexander)
+    - Nb of Goals / scoring percentage on attempts throughout seasons (Alexander)
+
+    - clean sheet % (Achiel)
+    - saves % / shots_against (Achiel)
+    - pen saved % / pens attempts - pens missed (Achiel)

@@ -38,7 +38,7 @@ def get_name_from_id(player_id):
 def plot_player_goals(player_name):
     player_id = get_id_from_name(player_name)
     player_df = all_df["shooting"].loc[all_df["shooting"]["id"] == player_id]
-    #fig = px.line(x = player_df['season'], y = player_df['goals_per_shot_on_target'], color=px.Constant("Scoring percentage on attempts on goal"), 
+    #fig = px.line(x = player_df['season'], y = player_df['goals_per_shot_on_target'], color=px.Constant("Scoring percentage on attempts on goal"),
     #              labels={'x':'seasons', 'y':'goals'})
     #fig.add_bar(x = player_df['season'], y = player_df['goals'], name = "Actual goals")
 
@@ -48,7 +48,7 @@ def plot_player_goals(player_name):
         secondary_y = False,
     )
     fig.add_trace(
-        go.Scatter(x = player_df['season'], y = player_df['goals_per_shot_on_target'], name = "Scoring percentage on attempts on goal"), 
+        go.Scatter(x = player_df['season'], y = player_df['goals_per_shot_on_target'], name = "Scoring percentage on attempts on goal"),
         secondary_y = True,
     )
     fig.update_xaxes(title_text = "season")
@@ -92,7 +92,7 @@ def plot_a_club_players_cards(club_name, season, comp_level):
         )
     )
 
-
+# https://dash.plotly.com/basic-callbacks
 @app.callback(
     Output('season_dropdown', 'value'),
     Output('season_dropdown', 'options'),
