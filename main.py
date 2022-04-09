@@ -5,6 +5,7 @@ import pandas as pd
 from preprocess import get_all_dataframes
 from utils import time_this
 import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 
 app = Dash("Information Visualization Project")
 
@@ -37,8 +38,23 @@ def get_name_from_id(player_id):
 def plot_player_goals(player_name):
     player_id = get_id_from_name(player_name)
     player_df = all_df["shooting"].loc[all_df["shooting"]["id"] == player_id]
-    return px.line(x = player_df['season'], y = player_df['goals'], labels={'x':'seasons', 'y':'goals'})
+    #fig = px.line(x = player_df['season'], y = player_df['goals_per_shot_on_target'], color=px.Constant("Scoring percentage on attempts on goal"), 
+    #              labels={'x':'seasons', 'y':'goals'})
+    #fig.add_bar(x = player_df['season'], y = player_df['goals'], name = "Actual goals")
 
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig.add_trace(
+        go.Bar(name = "Actual goals", x = player_df['season'], y = player_df['goals']),
+        secondary_y = False,
+    )
+    fig.add_trace(
+        go.Scatter(x = player_df['season'], y = player_df['goals_per_shot_on_target'], name = "Scoring percentage on attempts on goal"), 
+        secondary_y = True,
+    )
+    fig.update_xaxes(title_text = "season")
+    fig.update_yaxes(title_text = "goals", secondary_y = False)
+    fig.update_yaxes(title_text = "percentage", secondary_y = True)
+    return fig
 
 @time_this
 @app.callback(
@@ -140,7 +156,7 @@ app.layout = html.Div(children=[
 
     dcc.Graph(id='plot_a_club_players_cards'),
     dcc.Graph(
-        figure=plot_player_goals("Marco Benassi")
+        figure=plot_player_goals("Romelu Lukaku")
     )
 ])
 
