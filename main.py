@@ -58,32 +58,23 @@ def plot_player_goals(player_name):
 
 @time_this
 @app.callback(
-    Output('plot_a_club_players_cards', 'figure'),
-    Input('club_dropdown', 'value'),
-    Input('season_dropdown', 'value'),
-    Input('comp_level_dropdown', 'value')
+    Output('plot_a_player_cards_seasons', 'figure'),
+    Input('player_dropdown', 'value'),
 )
-def plot_a_club_players_cards(club_name, season, comp_level):
+def plot_a_player_cards_seasons(player_name):
+    player_id = get_id_from_name(player_name)
+    player_misc_df = all_df["misc"].loc[all_df["misc"]["id"] == player_id]
 
-    clubs = all_df["info"]["club"].unique()
-    seasons = all_df["misc"]["season"].unique()
-    comp_levels = all_df["misc"]["comp_level"].unique()
-    club_df = all_df["misc"].loc[
-        (all_df["misc"]["squad"] == club_name) &
-        (all_df["misc"]["season"] == season) &
-        (all_df["misc"]["comp_level"] == comp_level)
-    ]
-
-    club_df = club_df.merge(all_df["info"], on="id", how="left")
     button_layer_1_height = 1.08
     return go.Figure(
         data=[
-            go.Bar(name="Red Cards", x=club_df["name"], y=club_df["cards_red"], marker=dict(color="red")),
-            go.Bar(name='Yellow Cards', x=club_df["name"], y=club_df["cards_yellow"], marker=dict(color="yellow")),
+            go.Bar(name="Red Cards", x=player_misc_df["season"].unique(), y=player_misc_df["cards_red"], marker=dict(color="red"), offsetgroup=0),
+            go.Bar(name='Yellow Cards', x=player_misc_df["season"].unique(), y=player_misc_df["cards_yellow"], marker=dict(color="#FFEA00"), offsetgroup=1),
         ],
         layout=go.Layout(
-            title=go.layout.Title(text=f"Every cards gotten by {comp_level} {club_name} Players in {season}"),
-            xaxis_title="Player Name",
+            barmode="group",
+            title=go.layout.Title(text=f"Every cards gotten by {player_name} throughout the seasons"),
+            xaxis_title="Seasons",
             yaxis_title="Amount of Cards",
             font={
                 "size": 15,
@@ -92,20 +83,48 @@ def plot_a_club_players_cards(club_name, season, comp_level):
         )
     )
 
-# https://dash.plotly.com/basic-callbacks
+@time_this
 @app.callback(
-    Output('season_dropdown', 'value'),
-    Output('season_dropdown', 'options'),
-    Output('comp_level_dropdown', 'value'),
-    Output('comp_level_dropdown', 'options'),
-    Input('club_dropdown', 'value'),
+    Output('plot_a_player_height_weight_seasons', 'figure'),
+    Input('player_dropdown', 'value'),
 )
-def update_dropdowns(club_name):
-    seasons = all_df["misc"].sort_values("season", ascending=False)["season"].loc[all_df["misc"]["squad"] == club_name].unique()
-    season = seasons[0]
-    comp_levels = all_df["misc"].sort_values("comp_level")["comp_level"].loc[all_df["misc"]["squad"] == club_name].unique()
-    comp_level = comp_levels[0]
-    return season, seasons, comp_level, comp_levels
+def plot_a_player_height_weight_seasons(player_name):
+    player_id = get_id_from_name(player_name)
+    player_misc_df = all_df["misc"].loc[all_df["misc"]["id"] == player_id]
+    player_misc_df["cards"] = player_misc_df["cards_red"] + player_misc_df["cards_yellow"]
+    button_layer_1_height = 1.08
+    return go.Figure(
+        data=[
+            go.Scatter(name='Cards Got', x=player_misc_df["season"].unique(), y=player_misc_df["cards"], marker=dict(color="Orange")),
+            go.Scatter(name='Number of Fouls', x=player_misc_df["season"].unique(), y=player_misc_df["fouls"], marker=dict(color="#008000")),
+        ],
+        layout=go.Layout(
+            barmode="group",
+            title=go.layout.Title(text=f"Comparison between the amount of faults and the number of cards gotten by {player_name} throughout the seasons"),
+            xaxis_title="Seasons",
+            yaxis_title="Unity",
+            font={
+                "size": 15,
+                "color": "black"
+            },
+        )
+    )
+
+
+# @app.callback(
+#     Output('position_dropdown', 'value'),
+#     Output('position_dropdown', 'options'),
+#     Output('player_dropdown', 'value'),
+#     Output('player_dropdown', 'options'),
+#     Input('comp_level_dropdown', 'value'),
+# )
+# def update_dropdowns(comp_level):
+#
+#     positions = all_df["info"].sort_values("position", ascending=False)["position"].loc[all_df["misc"]["comp_level"] == comp_level].unique()
+#     position = positions[0]
+#     players = all_df["misc"].sort_values("player")["player"].loc[all_df["misc"]["comp_level"] == comp_level].unique()
+#     player = players[0]
+#     return position, positions, player, players
 
 
 @time_this
@@ -128,33 +147,40 @@ app.layout = html.Div(children=[
     html.Div(
         className="row",
         children=[
+            # html.Div(
+            #     className="four columns", children=[
+            #     dcc.Dropdown(
+            #         all_df["misc"].sort_values("comp_level")["comp_level"].unique(),
+            #         all_df["misc"].sort_values("comp_level")["comp_level"].unique()[0],
+            #         id='comp_level_dropdown',
+            #         placeholder="Select a Level"
+            #     ),
+            # ]),
+            # html.Div(
+            #     className="four columns", children=[
+            #     dcc.Dropdown(
+            #         id='position_dropdown',
+            #         placeholder="Select a position",
+            #     ),
+            # ]),
             html.Div(
                 className="four columns", children=[
                 dcc.Dropdown(
-                    all_df["misc"].sort_values("squad")["squad"].unique(),
-                    all_df["misc"].sort_values("squad")["squad"].unique()[0],
-                    id='club_dropdown',
-                    placeholder="Select a Club"
-                ),
-            ]),
-            html.Div(
-                className="four columns", children=[
-                dcc.Dropdown(
-                    id='season_dropdown',
-                    placeholder="Select a season",
-                ),
-            ]),
-            html.Div(
-                className="four columns", children=[
-                dcc.Dropdown(
-                    id='comp_level_dropdown',
-                    placeholder="Select a competitive level"
+                    all_df["info"].sort_values("name")["name"].unique(),
+                    all_df["info"].sort_values("name")["name"].unique()[0],
+                    id='player_dropdown',
+                    placeholder="Select a player"
                 ),
             ]),
         ]
     ),
 
-    dcc.Graph(id='plot_a_club_players_cards'),
+    dcc.Graph(
+        id="plot_a_player_cards_seasons",
+        ),
+    dcc.Graph(
+        id="plot_a_player_height_weight_seasons",
+        ),
     dcc.Graph(
         figure=plot_player_goals("Romelu Lukaku")
     )
