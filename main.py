@@ -85,10 +85,10 @@ def plot_a_player_cards_seasons(player_name):
 
 @time_this
 @app.callback(
-    Output('plot_a_player_height_weight_seasons', 'figure'),
+    Output('plot_a_player_fouls_cards_seasons', 'figure'),
     Input('player_dropdown', 'value'),
 )
-def plot_a_player_height_weight_seasons(player_name):
+def plot_a_player_fouls_cards_seasons(player_name):
     player_id = get_id_from_name(player_name)
     player_misc_df = all_df["misc"].loc[all_df["misc"]["id"] == player_id]
     player_misc_df["cards"] = player_misc_df["cards_red"] + player_misc_df["cards_yellow"]
@@ -110,36 +110,37 @@ def plot_a_player_height_weight_seasons(player_name):
         )
     )
 
-
-# @app.callback(
-#     Output('position_dropdown', 'value'),
-#     Output('position_dropdown', 'options'),
-#     Output('player_dropdown', 'value'),
-#     Output('player_dropdown', 'options'),
-#     Input('comp_level_dropdown', 'value'),
-# )
-# def update_dropdowns(comp_level):
-#
-#     positions = all_df["info"].sort_values("position", ascending=False)["position"].loc[all_df["misc"]["comp_level"] == comp_level].unique()
-#     position = positions[0]
-#     players = all_df["misc"].sort_values("player")["player"].loc[all_df["misc"]["comp_level"] == comp_level].unique()
-#     player = players[0]
-#     return position, positions, player, players
+@app.callback(
+    # Output('position_dropdown', 'value'),
+    # Output('position_dropdown', 'options'),
+    # Output('player_dropdown', 'value'),
+    Output('player_dropdown', 'options'),
+    Input('position_dropdown', 'value'),
+)
+def update_dropdowns(position):
+    print(position)
+    players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["position"] == position].unique()
+    # player = players[0]
+    return players # player, 
 
 
 @time_this
-def plot_weight_by_position():
-    return px.bar(all_df["info"], x="position", y="weight", barmode="group")
+@app.callback(
+    Output('height', 'children'),
+    Output('weight', 'children'),
+    Input('player_dropdown', 'value'),
+)
+def get_player_weight_height(player_name):
+    player_row = all_df["info"].loc[all_df['info']['name'] == player_name]
+    height = player_row.iloc[0]["height"]
+    weight = player_row.iloc[0]["weight"]
+    return f"Height: {height} cm", f"Weight: {weight} kg"
 
 # page layout
 
 app.layout = html.Div(children=[
     html.H1(children='Information Visualization Project'),
-
-    html.Div(children='''
-        Soccer Stats
-    '''),
-
+    html.H2(children='Soccer Statistics'),
     # dcc.Graph(
     #     id='example-graph',
     #     figure=plot_weight_by_position
@@ -147,44 +148,68 @@ app.layout = html.Div(children=[
     html.Div(
         className="row",
         children=[
-            # html.Div(
-            #     className="four columns", children=[
-            #     dcc.Dropdown(
-            #         all_df["misc"].sort_values("comp_level")["comp_level"].unique(),
-            #         all_df["misc"].sort_values("comp_level")["comp_level"].unique()[0],
-            #         id='comp_level_dropdown',
-            #         placeholder="Select a Level"
-            #     ),
-            # ]),
-            # html.Div(
-            #     className="four columns", children=[
-            #     dcc.Dropdown(
-            #         id='position_dropdown',
-            #         placeholder="Select a position",
-            #     ),
-            # ]),
-            html.Div(
-                className="four columns", children=[
+            html.Div( ## Date select dcc components
+                [
+                    dcc.Markdown("Choose a field position"),
+                    dcc.Dropdown(
+                        all_df["info"].sort_values("position")["position"].unique(),
+                        all_df["info"].sort_values("position")["position"].unique()[0],
+                        id='position_dropdown',
+                        placeholder="Select a field position"
+                    ),
+                ],
+                style={
+                    "display": "inline-block",
+                    "width": "30%",
+                    "margin-left": "20px",
+                    "verticalAlign": "top"
+                }
+            ),
+        ]
+    ),
+    html.Div(children=[
+        html.Span(id="height"),
+    ]),
+    html.Div(children=[
+        html.Span(id="weight"),
+    ]),
+    html.Div(children=[
+        html.Div( ## Stock select
+            [
+                dcc.Markdown("Choose a Player"),
                 dcc.Dropdown(
                     all_df["info"].sort_values("name")["name"].unique(),
-                    all_df["info"].sort_values("name")["name"].unique()[0],
+                    # all_df["info"].sort_values("name")["name"].unique()[0],
                     id='player_dropdown',
                     placeholder="Select a player"
                 ),
-            ]),
-        ]
-    ),
-
-    dcc.Graph(
-        id="plot_a_player_cards_seasons",
+            ],
+            style={
+                "display": "inline-block",
+                "width": "15%"
+            }
         ),
-    dcc.Graph(
-        id="plot_a_player_height_weight_seasons",
+        dcc.Graph(
+            id="plot_a_player_cards_seasons",
+            style={
+                "display": "inline-block",
+                "width": "40%",
+            }
         ),
+        dcc.Graph(
+            id="plot_a_player_fouls_cards_seasons",
+            style={
+                "display": "inline-block",
+                "width": "40%",
+                "verticalAlign": "top"
+            }
+        ),
+    
+    ]),
     dcc.Graph(
         figure=plot_player_goals("Romelu Lukaku")
     )
 ])
 
 if __name__ == '__main__':
-    app.run_server(debug=False)
+    app.run_server(debug=True, threaded=True) 
