@@ -77,7 +77,7 @@ def plot_a_player_cards_seasons(player_name):
             xaxis_title="Seasons",
             yaxis_title="Amount of Cards",
             font={
-                "size": 15,
+                "size": 12,
                 "color": "black"
             },
         )
@@ -104,7 +104,7 @@ def plot_a_player_fouls_cards_seasons(player_name):
             xaxis_title="Seasons",
             yaxis_title="Unity",
             font={
-                "size": 15,
+                "size": 12,
                 "color": "black"
             },
         )
@@ -113,15 +113,14 @@ def plot_a_player_fouls_cards_seasons(player_name):
 @app.callback(
     # Output('position_dropdown', 'value'),
     # Output('position_dropdown', 'options'),
-    # Output('player_dropdown', 'value'),
+    Output('player_dropdown', 'value'),
     Output('player_dropdown', 'options'),
     Input('position_dropdown', 'value'),
 )
 def update_dropdowns(position):
-    print(position)
     players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["position"] == position].unique()
-    # player = players[0]
-    return players # player, 
+    player = players[0]
+    return player, players  
 
 
 @time_this
@@ -135,6 +134,32 @@ def get_player_weight_height(player_name):
     height = player_row.iloc[0]["height"]
     weight = player_row.iloc[0]["weight"]
     return f"Height: {height} cm", f"Weight: {weight} kg"
+
+@time_this
+@app.callback(
+    Output('plot_a_player_clubs_seasons', 'figure'),
+    Input('player_dropdown', 'value'),
+)
+def get_player_club_evolution(player_name):
+    player_id = get_id_from_name(player_name)
+    player_misc_df = all_df["misc"].loc[all_df["misc"]["id"] == player_id]
+    figure = go.Figure()
+    values = player_misc_df["squad"].value_counts()
+    figure.add_trace(
+        go.Pie(labels=values.index.tolist(), values=values.tolist(), textinfo='label+percent')
+    )        
+        
+        
+    figure.update_layout(
+        title=go.layout.Title(text=f"{player_name} all clubs from his career and played time percentage"),
+        font={
+                "size": 12,
+                "color": "black"
+            },
+    
+    )
+    return figure
+
 
 # page layout
 
@@ -160,11 +185,26 @@ app.layout = html.Div(children=[
                 ],
                 style={
                     "display": "inline-block",
-                    "width": "30%",
+                    "width": "40%",
                     "margin-left": "20px",
                     "verticalAlign": "top"
                 }
             ),
+            html.Div( ## Stock select
+            [
+                dcc.Markdown("Choose a Player"),
+                dcc.Dropdown(
+                    all_df["info"].sort_values("name")["name"].unique(),
+                    all_df["info"].sort_values("name")["name"].unique()[0],
+                    id='player_dropdown',
+                    placeholder="Select a player"
+                ),
+            ],
+            style={
+                "display": "inline-block",
+                "width": "15%"
+            }
+        ),
         ]
     ),
     html.Div(children=[
@@ -174,20 +214,8 @@ app.layout = html.Div(children=[
         html.Span(id="weight"),
     ]),
     html.Div(children=[
-        html.Div( ## Stock select
-            [
-                dcc.Markdown("Choose a Player"),
-                dcc.Dropdown(
-                    all_df["info"].sort_values("name")["name"].unique(),
-                    # all_df["info"].sort_values("name")["name"].unique()[0],
-                    id='player_dropdown',
-                    placeholder="Select a player"
-                ),
-            ],
-            style={
-                "display": "inline-block",
-                "width": "15%"
-            }
+        dcc.Graph(
+            id="plot_a_player_clubs_seasons",
         ),
         dcc.Graph(
             id="plot_a_player_cards_seasons",
