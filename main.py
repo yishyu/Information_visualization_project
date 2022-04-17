@@ -6,6 +6,7 @@ from preprocess import get_all_dataframes
 from utils import time_this
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from goal_keepers import plot_gk
 
 app = Dash("Information Visualization Project")
 
@@ -157,7 +158,11 @@ app.layout = html.Div(children=[
     dcc.Graph(id='plot_a_club_players_cards'),
     dcc.Graph(
         figure=plot_player_goals("Romelu Lukaku")
-    )
+    ),
+   
+   #categories: "penalties", "saves" and "clean sheets"
+    dcc.Graph(figure=plot_gk("Thibaut Courtois", "clean sheets"))
+
 ])
 
 if __name__ == '__main__':
