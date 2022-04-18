@@ -110,6 +110,7 @@ def plot_a_player_fouls_cards_seasons(player_name):
         )
     )
 
+@time_this
 @app.callback(
     # Output('position_dropdown', 'value'),
     # Output('position_dropdown', 'options'),
@@ -120,7 +121,7 @@ def plot_a_player_fouls_cards_seasons(player_name):
 def update_dropdowns(position):
     players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["position"] == position].unique()
     player = players[0]
-    return player, players  
+    return player, players
 
 
 @time_this
@@ -147,19 +148,30 @@ def get_player_club_evolution(player_name):
     values = player_misc_df["squad"].value_counts()
     figure.add_trace(
         go.Pie(labels=values.index.tolist(), values=values.tolist(), textinfo='label+percent')
-    )        
-        
-        
+    )
     figure.update_layout(
         title=go.layout.Title(text=f"{player_name} all clubs from his career and played time percentage"),
         font={
                 "size": 12,
                 "color": "black"
             },
-    
     )
     return figure
 
+@time_this
+@app.callback(
+    Output('plot_a_player_tackles', 'figure'),
+    Input('player_dropdown', 'value'),
+)
+def get_player_tackles(player_name):
+    player_id = get_id_from_name(player_name)
+    player_def_df = all_df["defense"].loc[all_df["defense"]["id"] == player_id]
+
+    fig = go.Figure(data=[
+        go.Bar(name="won tackles", x=player_def_df["season"], y=player_def_df["tackles_won"], marker=dict(color="Green")),
+        go.Bar(name="all tackles", x=player_def_df["season"], y=player_def_df["tackles"])
+    ])
+    return fig
 
 # page layout
 
@@ -207,6 +219,7 @@ app.layout = html.Div(children=[
         ),
         ]
     ),
+
     html.Div(children=[
         html.Span(id="height"),
     ]),
@@ -232,12 +245,18 @@ app.layout = html.Div(children=[
                 "verticalAlign": "top"
             }
         ),
-    
+
     ]),
+    dcc.Graph(
+            id="plot_a_player_tackles",
+    ),
+    dcc.Graph(
+            id="plot_a_player_assists",
+    ),
     dcc.Graph(
         figure=plot_player_goals("Romelu Lukaku")
     )
 ])
 
 if __name__ == '__main__':
-    app.run_server(debug=True, threaded=True) 
+    app.run_server(debug=True, threaded=True)
