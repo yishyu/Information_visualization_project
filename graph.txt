@@ -29,9 +29,10 @@ filter:
         - pen saved % / pens attempts - pens missed
 
 Graphs:
-    - Yellow /red cards troughout seasons (Yishen)
-    - Height-Weight (Yishen)
-    - dribbled past / blocks (Yishen)
+    - Yellow /red cards troughout seasons (Yishen) (Done)
+    - Height-Weight (Yishen) ( Not Realisable )
+    - dribbled past / blocks (Yishen) (Not Realisable)
+    - Number of cards / Number of Faults (Yishen) (Done)
 
     - Assist % / successful passes % (Alexander)
     - tackles / tackles won (Alexander)
