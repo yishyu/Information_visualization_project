@@ -39,19 +39,36 @@ def get_name_from_id(player_id):
 def plot_player_goals(player_name):
     player_id = get_id_from_name(player_name)
     player_df = all_df["shooting"].loc[all_df["shooting"]["id"] == player_id]
-    #fig = px.line(x = player_df['season'], y = player_df['goals_per_shot_on_target'], color=px.Constant("Scoring percentage on attempts on goal"),
-    #              labels={'x':'seasons', 'y':'goals'})
-    #fig.add_bar(x = player_df['season'], y = player_df['goals'], name = "Actual goals")
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
-    fig.add_trace(
-        go.Bar(name = "Actual goals", x = player_df['season'], y = player_df['goals']),
-        secondary_y = False,
-    )
-    fig.add_trace(
-        go.Scatter(x = player_df['season'], y = player_df['goals_per_shot_on_target'], name = "Scoring percentage on attempts on goal"),
-        secondary_y = True,
-    )
+    teams = player_df['squad']
+
+    # for the goals (bar plot)
+    idx_change_of_teams = 0
+    for i in range (1, len(teams)):
+        if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
+            fig.add_trace(
+                go.Bar(
+                    name = f"Actual goals for {teams.get(idx_change_of_teams)}",
+                    x = [player_df['season'][j] for j in range(idx_change_of_teams,i)], 
+                    y = [player_df['goals'][j] for j in range(idx_change_of_teams,i)]),
+                    secondary_y = False,
+            )
+            idx_change_of_teams = i
+
+    # for the scoring percentage (scatter plot)
+    idx_change_of_teams = 0
+    for i in range (1, len(teams)):
+        if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
+            fig.add_trace(
+                go.Scatter(
+                    x = [player_df['season'][j] for j in range(idx_change_of_teams,i)], 
+                    y = [player_df['goals_per_shot_on_target'][j] for j in range(idx_change_of_teams,i)], 
+                    name = f"Scoring percentage on attempts on goal for {teams.get(idx_change_of_teams)}"),
+                    secondary_y = True,
+            )
+            idx_change_of_teams = i
+            
     fig.update_xaxes(title_text = "season")
     fig.update_yaxes(title_text = "goals", secondary_y = False)
     fig.update_yaxes(title_text = "percentage", secondary_y = True)
@@ -287,7 +304,7 @@ app.layout = html.Div(children=[
             id="plot_a_player_assists",
     ),
     dcc.Graph(
-        figure=plot_player_goals("Romelu Lukaku")
+        figure=plot_player_goals("Marco Benassi")
     ),
 
    #categories: "penalties", "saves" and "clean sheets"
