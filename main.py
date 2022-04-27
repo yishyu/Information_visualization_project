@@ -23,6 +23,7 @@ def get_id_from_name(player_name):
     names = all_df["info"]["name"]
     for i in range (0, np.size(names)):
         if names[i] == player_name:
+            print(ids[i])
             return ids[i]
     raise ValueError(f"{player_name} is not a valid player")
 
@@ -36,10 +37,10 @@ def get_name_from_id(player_id):
 
 
 @time_this
-@app.callback(
-    Output('plot_player_goals', 'figure'),
-    Input('player_dropdown', 'value'),
-)
+# @app.callback(
+#     Output('plot_player_goals', 'figure'),
+#     Input('player_dropdown', 'value'),
+# )
 def plot_player_goals(player_name):
     print(player_name)
     player_id = get_id_from_name(player_name)
@@ -56,7 +57,7 @@ def plot_player_goals(player_name):
                 fig.add_trace(
                     go.Bar(
                         name = f"Actual goals for {teams.get(idx_change_of_teams)}",
-                        x = [player_df['season'][j] for j in range(idx_change_of_teams,i)],
+                        x = [player_df['season'][j] for j in range(idx_change_of_teams,i)], 
                         y = [player_df['goals'][j] for j in range(idx_change_of_teams,i)]),
                         secondary_y = False,
                 )
@@ -68,8 +69,8 @@ def plot_player_goals(player_name):
             if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
                 fig.add_trace(
                     go.Scatter(
-                        x = [player_df['season'][j] for j in range(idx_change_of_teams,i)],
-                        y = [player_df['goals_per_shot_on_target'][j] for j in range(idx_change_of_teams,i)],
+                        x = [player_df['season'][j] for j in range(idx_change_of_teams,i)], 
+                        y = [player_df['goals_per_shot_on_target'][j] for j in range(idx_change_of_teams,i)], 
                         name = f"Scoring percentage on attempts on goal for {teams.get(idx_change_of_teams)}"),
                         secondary_y = True,
                 )
@@ -78,6 +79,7 @@ def plot_player_goals(player_name):
         fig.update_xaxes(title_text = "season")
         fig.update_yaxes(title_text = "goals", secondary_y = False)
         fig.update_yaxes(title_text = "percentage", secondary_y = True)
+        
     except:
         fig = go.Figure()
     return fig
@@ -185,18 +187,85 @@ def get_player_club_evolution(player_name):
     return figure
 
 @time_this
-@app.callback(
-    Output('plot_a_player_tackles', 'figure'),
-    Input('player_dropdown', 'value'),
-)
+def plot_player_games_played(player_name):
+    player_id = get_id_from_name(player_name)
+    player_df = all_df["playing_time"].loc[all_df["playing_time"]["id"] == player_id]
+
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    teams = player_df['squad']
+
+    # for the games played (bar plot)
+    idx_change_of_teams = 0
+    for i in range (1, len(teams)):
+        if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
+            fig.add_trace(
+                go.Bar(
+                    name = f"Games played for {teams.get(idx_change_of_teams)}",
+                    x = [player_df['season'][j] for j in range(idx_change_of_teams,i)], 
+                    y = [player_df['games'][j] for j in range(idx_change_of_teams,i)]),
+                    secondary_y = False,
+            )
+            idx_change_of_teams = i
+
+    # for the scoring percentage (scatter plot)
+    idx_change_of_teams = 0
+    for i in range (1, len(teams)):
+        if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
+            fig.add_trace(
+                go.Scatter(
+                    x = [player_df['season'][j] for j in range(idx_change_of_teams,i)], 
+                    y = [player_df['minutes_per_game'][j] for j in range(idx_change_of_teams,i)], 
+                    name = f"Minutes per game for {teams.get(idx_change_of_teams)}"),
+                    secondary_y = True,
+            )
+            idx_change_of_teams = i
+            
+    fig.update_xaxes(title_text = "season")
+    fig.update_yaxes(title_text = "games", secondary_y = False)
+    fig.update_yaxes(title_text = "minutes", secondary_y = True)
+    fig.update_layout(
+        title=go.layout.Title(text=f"{player_name} games played vs minutes per game"),
+        font={
+                "size": 12,
+                "color": "black"
+            },
+    )
+    return fig
+
+@time_this
+# @app.callback(
+#     Output('plot_a_player_tackles', 'figure'),
+#     Input('player_dropdown', 'value'),
+# )
 def get_player_tackles(player_name):
     player_id = get_id_from_name(player_name)
     player_def_df = all_df["defense"].loc[all_df["defense"]["id"] == player_id]
 
-    fig = go.Figure(data=[
-        go.Bar(name="won tackles", x=player_def_df["season"], y=player_def_df["tackles_won"], marker=dict(color="Green")),
-        go.Bar(name="all tackles", x=player_def_df["season"], y=player_def_df["tackles"])
-    ])
+    # fig = go.Figure(data=[
+    #     go.Bar(name="won tackles", x=player_def_df["season"], y=player_def_df["tackles_won"], marker=dict(color="Green")),
+    #     go.Bar(name="all tackles", x=player_def_df["season"], y=player_def_df["tackles"])
+    # ])
+
+    fig = go.Figure()
+    teams = player_def_df['squad']
+    
+    idx_change_of_teams = 0
+    for i in range (1, len(teams)):
+        if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
+            fig.add_trace(
+                    go.Bar(
+                        name=f"won tackles for {teams.get(idx_change_of_teams)}", 
+                        x=[player_def_df["season"][j] for j in range(idx_change_of_teams,i)], 
+                        y=[player_def_df["tackles_won"][j] for j in range(idx_change_of_teams,i)], 
+                        marker=dict(color="Green"))
+                    )
+            fig.add_trace(
+                    go.Bar(
+                        name=f"all tackles for {teams.get(idx_change_of_teams)}", 
+                        x=[player_def_df["season"][j] for j in range(idx_change_of_teams,i)], 
+                        y=[player_def_df["tackles"][j] for j in range(idx_change_of_teams,i)])
+                    )
+            idx_change_of_teams = i
     return fig
 
 @time_this
@@ -423,13 +492,18 @@ app.layout = html.Div(children=[
 
     ]),
     dcc.Graph(
-            id="plot_a_player_tackles",
+            figure=plot_player_games_played("Marco Benassi")
+    ),
+    dcc.Graph(
+            #id="plot_a_player_tackles",
+            figure=get_player_tackles("Marco Benassi")
     ),
     dcc.Graph(
             id="plot_a_player_assists",
     ),
     dcc.Graph(
-        id="plot_player_goals"
+        #id="plot_player_goals"
+        figure=plot_player_goals("Marco Benassi")
     ),
 
    #categories: "penalties", "saves" and "clean sheets"
