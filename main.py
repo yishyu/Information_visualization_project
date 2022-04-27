@@ -1,12 +1,12 @@
 import numpy as np
-from dash import Dash, html, dcc, Input, Output
+from dash import Dash, html, dcc, Input, Output, callback_context
 import plotly.express as px
 import pandas as pd
 from preprocess import get_all_dataframes
 from utils import time_this
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from goal_keepers import plot_gk
+from PIL import Image
 
 app = Dash("Information Visualization Project")
 
@@ -36,42 +36,50 @@ def get_name_from_id(player_id):
 
 
 @time_this
+@app.callback(
+    Output('plot_player_goals', 'figure'),
+    Input('player_dropdown', 'value'),
+)
 def plot_player_goals(player_name):
+    print(player_name)
     player_id = get_id_from_name(player_name)
-    player_df = all_df["shooting"].loc[all_df["shooting"]["id"] == player_id]
+    try:
+        player_df = all_df["shooting"].loc[all_df["shooting"]["id"] == player_id]
 
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-    teams = player_df['squad']
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        teams = player_df['squad']
 
-    # for the goals (bar plot)
-    idx_change_of_teams = 0
-    for i in range (1, len(teams)):
-        if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
-            fig.add_trace(
-                go.Bar(
-                    name = f"Actual goals for {teams.get(idx_change_of_teams)}",
-                    x = [player_df['season'][j] for j in range(idx_change_of_teams,i)], 
-                    y = [player_df['goals'][j] for j in range(idx_change_of_teams,i)]),
-                    secondary_y = False,
-            )
-            idx_change_of_teams = i
+        # for the goals (bar plot)
+        idx_change_of_teams = 0
+        for i in range (1, len(teams)):
+            if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
+                fig.add_trace(
+                    go.Bar(
+                        name = f"Actual goals for {teams.get(idx_change_of_teams)}",
+                        x = [player_df['season'][j] for j in range(idx_change_of_teams,i)],
+                        y = [player_df['goals'][j] for j in range(idx_change_of_teams,i)]),
+                        secondary_y = False,
+                )
+                idx_change_of_teams = i
 
-    # for the scoring percentage (scatter plot)
-    idx_change_of_teams = 0
-    for i in range (1, len(teams)):
-        if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
-            fig.add_trace(
-                go.Scatter(
-                    x = [player_df['season'][j] for j in range(idx_change_of_teams,i)], 
-                    y = [player_df['goals_per_shot_on_target'][j] for j in range(idx_change_of_teams,i)], 
-                    name = f"Scoring percentage on attempts on goal for {teams.get(idx_change_of_teams)}"),
-                    secondary_y = True,
-            )
-            idx_change_of_teams = i
-            
-    fig.update_xaxes(title_text = "season")
-    fig.update_yaxes(title_text = "goals", secondary_y = False)
-    fig.update_yaxes(title_text = "percentage", secondary_y = True)
+        # for the scoring percentage (scatter plot)
+        idx_change_of_teams = 0
+        for i in range (1, len(teams)):
+            if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
+                fig.add_trace(
+                    go.Scatter(
+                        x = [player_df['season'][j] for j in range(idx_change_of_teams,i)],
+                        y = [player_df['goals_per_shot_on_target'][j] for j in range(idx_change_of_teams,i)],
+                        name = f"Scoring percentage on attempts on goal for {teams.get(idx_change_of_teams)}"),
+                        secondary_y = True,
+                )
+                idx_change_of_teams = i
+
+        fig.update_xaxes(title_text = "season")
+        fig.update_yaxes(title_text = "goals", secondary_y = False)
+        fig.update_yaxes(title_text = "percentage", secondary_y = True)
+    except:
+        fig = go.Figure()
     return fig
 
 @time_this
@@ -223,15 +231,132 @@ def get_player_assists(player_name):
             },
     )
     return figure
+
+
+def update_point(trace, points, selector):
+    print("hello it works")
+
+
+def get_image():
+    # https://images.unsplash.com/photo-1546608235-3310a2494cdf?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=638&q=80
+    img = Image.open("soccerfield.png")
+    fig = go.Figure()
+    fig.add_layout_image(
+        dict(
+            source=img,
+            xref="x",
+            yref="y",
+            x=-1,
+            y=8,
+            sizex=7,
+            sizey=9,
+            sizing="stretch",
+            opacity=1,
+            layer="below",
+
+        )
+    )
+    y_max = 8
+    fig.add_trace(
+        go.Bar(x=[0, 0.5,1,1.5], y=[y_max for i in range(6)], opacity=0.2)
+    )
+
+
+    # fig = px.imshow(img, color_continuous_scale="gray")
+    fig.update_layout(
+        height=700,
+        width=1400,
+        coloraxis_showscale=False
+        )
+    fig.update_xaxes(showgrid=False,showticklabels=False, fixedrange=True)
+    fig.update_yaxes(showgrid=False,showticklabels=False, fixedrange=True)
+    fig.update_traces(
+        hovertemplate=None,
+        hoverinfo='skip'
+    )
+    print(fig.data)
+    print(fig.data[0])
+    fig.update_layout(template="plotly_white")
+    fig.data[0].on_click(update_point)
+    return fig
 # page layout
 
+@app.callback(
+    Output('container-button-timestamp', 'children'),
+    Input('btn-nclicks-1', 'n_clicks'),
+    Input('btn-nclicks-2', 'n_clicks'),
+    Input('btn-nclicks-3', 'n_clicks')
+)
+def displayClick(btn1, btn2, btn3):
+    changed_id = [p['prop_id'] for p in callback_context.triggered][0]
+    if 'btn-nclicks-1' in changed_id:
+        msg = 'Button 1 was most recently clicked'
+    elif 'btn-nclicks-2' in changed_id:
+        msg = 'Button 2 was most recently clicked'
+    elif 'btn-nclicks-3' in changed_id:
+        msg = 'Button 3 was most recently clicked'
+    else:
+        msg = 'None of the buttons have been clicked yet'
+    return html.Div(msg)
+
+@time_this
+@app.callback(
+    Output('gk_graph', 'figure'),
+    Input('player_dropdown', 'value')
+)
+def plot_gk(player_name, category="clean sheets"):
+    player_id = get_id_from_name(player_name)
+    player_df = all_df["keeper"].loc[all_df["keeper"]["id"] == player_id]
+
+    if category == "clean sheets":
+        column = "clean_sheets"
+        column2 = "clean_sheets_pct"
+        yaxes = "Clean sheets"
+        yaxes2 = "Clean sheets percentage"
+    elif category == "saves":
+        column = "shots_on_target_against"
+        column2 = "save_pct"
+        yaxes = "Shots on target"
+        yaxes2 = "Save percentage"
+    elif category == "penalties":
+        column = "pens_att_gk"
+        column2 = "pens_save_pct"
+        yaxes = "Penalties against"
+        yaxes2 = "Penalty save percentage"
+
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    fig.add_trace(
+        go.Bar(name = yaxes, x = player_df["season"], y = player_df[column]),
+        secondary_y = False,
+    )
+
+    fig.add_trace(
+        go.Scatter(name = yaxes2, x = player_df["season"], y = player_df[column2]),
+        secondary_y = True
+    )
+    fig.update_xaxes(title_text = "season")
+    fig.update_yaxes(title_text = yaxes)
+    fig.update_yaxes(title_text = yaxes2, secondary_y = True)
+    return fig
+
 app.layout = html.Div(children=[
+
     html.H1(children='Information Visualization Project'),
     html.H2(children='Soccer Statistics'),
-    # dcc.Graph(
-    #     id='example-graph',
-    #     figure=plot_weight_by_position
-    # ),
+    dcc.Graph(
+        figure=get_image(),
+        config={'displayModeBar': False},
+    ),
+    html.Div(
+        children=[
+            html.Button('Button 1', id='btn-nclicks-1', n_clicks=0),
+            html.Button('Button 2', id='btn-nclicks-2', n_clicks=0),
+            html.Button('Button 3', id='btn-nclicks-3', n_clicks=0),
+            html.Div(id='container-button-timestamp'),
+
+        ]
+    ),
+
     html.Div(
         className="row",
         children=[
@@ -304,11 +429,13 @@ app.layout = html.Div(children=[
             id="plot_a_player_assists",
     ),
     dcc.Graph(
-        figure=plot_player_goals("Marco Benassi")
+        id="plot_player_goals"
     ),
 
    #categories: "penalties", "saves" and "clean sheets"
-    dcc.Graph(figure=plot_gk("Thibaut Courtois", "clean sheets"))
+    dcc.Graph(
+        id="gk_graph",
+    )
 
 ])
 
