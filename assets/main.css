@@ -1,0 +1,67 @@
+html{
+    /*overflow-y: hidden;*/
+    overflow-x: hidden;
+}
+.header-description {
+    background: #FFFFFF;
+    color: #CFCFCF;
+    margin: 4px auto;
+    text-align: center;
+    max-width: 384px;
+}
+
+.link {
+    text-decoration: none;
+}
+
+#overlay {
+    position: absolute; /* Sit on top of the page content */
+    width: 100%; /* Full width (cover the whole page) */
+    height: 100%; /* Full height (cover the whole page) */
+    top: 19%;
+    left: 27%;
+    right: 0;
+    bottom: 0;
+    z-index: 2; /* Specify a stack order in case you're using a different order for other elements */
+    /*cursor: pointer; /* Add a pointer on hover */
+}
+
+.rectangleBtn {
+    width:10%;
+    height:60%;
+    margin: 2%;
+    border:none;
+
+}
+.positionBtn{
+    font-size:1.3em;
+    opacity:0.7;
+    color:white;
+    cursor: pointer;
+}
+.positionBtn:hover{
+    opacity:1;
+}
+
+
+#defender {
+    background-color:#6d77d0;
+}
+
+#midfielder {
+    background-color: #D22B2B;
+}
+
+#striker {
+    background-color: khaki;
+}
+#keeper {
+    height:10%;
+    background-color:#000000;
+    border: #000000;
+    border-radius: 50%;
+    margin-left:-5%;
+    margin-right:2.4%
+
+
+}
