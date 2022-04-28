@@ -7,8 +7,11 @@ from utils import time_this
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from PIL import Image
+import os
+import base64
 
-app = Dash("Information Visualization Project")
+
+app = Dash(__name__)
 
 # assume you have a "long-form" data frame
 # see https://plotly.com/python/px-arguments/ for more options
@@ -23,7 +26,6 @@ def get_id_from_name(player_name):
     names = all_df["info"]["name"]
     for i in range (0, np.size(names)):
         if names[i] == player_name:
-            print(ids[i])
             return ids[i]
     raise ValueError(f"{player_name} is not a valid player")
 
@@ -42,7 +44,6 @@ def get_name_from_id(player_id):
 #     Input('player_dropdown', 'value'),
 # )
 def plot_player_goals(player_name):
-    print(player_name)
     player_id = get_id_from_name(player_name)
     try:
         player_df = all_df["shooting"].loc[all_df["shooting"]["id"] == player_id]
@@ -57,7 +58,7 @@ def plot_player_goals(player_name):
                 fig.add_trace(
                     go.Bar(
                         name = f"Actual goals for {teams.get(idx_change_of_teams)}",
-                        x = [player_df['season'][j] for j in range(idx_change_of_teams,i)], 
+                        x = [player_df['season'][j] for j in range(idx_change_of_teams,i)],
                         y = [player_df['goals'][j] for j in range(idx_change_of_teams,i)]),
                         secondary_y = False,
                 )
@@ -69,8 +70,8 @@ def plot_player_goals(player_name):
             if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
                 fig.add_trace(
                     go.Scatter(
-                        x = [player_df['season'][j] for j in range(idx_change_of_teams,i)], 
-                        y = [player_df['goals_per_shot_on_target'][j] for j in range(idx_change_of_teams,i)], 
+                        x = [player_df['season'][j] for j in range(idx_change_of_teams,i)],
+                        y = [player_df['goals_per_shot_on_target'][j] for j in range(idx_change_of_teams,i)],
                         name = f"Scoring percentage on attempts on goal for {teams.get(idx_change_of_teams)}"),
                         secondary_y = True,
                 )
@@ -79,7 +80,7 @@ def plot_player_goals(player_name):
         fig.update_xaxes(title_text = "season")
         fig.update_yaxes(title_text = "goals", secondary_y = False)
         fig.update_yaxes(title_text = "percentage", secondary_y = True)
-        
+
     except:
         fig = go.Figure()
     return fig
@@ -187,6 +188,10 @@ def get_player_club_evolution(player_name):
     return figure
 
 @time_this
+@app.callback(
+    Output('plot_player_games_played', 'figure'),
+    Input('player_dropdown', 'value'),
+)
 def plot_player_games_played(player_name):
     player_id = get_id_from_name(player_name)
     player_df = all_df["playing_time"].loc[all_df["playing_time"]["id"] == player_id]
@@ -201,7 +206,7 @@ def plot_player_games_played(player_name):
             fig.add_trace(
                 go.Bar(
                     name = f"Games played for {teams.get(idx_change_of_teams)}",
-                    x = [player_df['season'][j] for j in range(idx_change_of_teams,i)], 
+                    x = [player_df['season'][j] for j in range(idx_change_of_teams,i)],
                     y = [player_df['games'][j] for j in range(idx_change_of_teams,i)]),
                     secondary_y = False,
             )
@@ -213,13 +218,13 @@ def plot_player_games_played(player_name):
         if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
             fig.add_trace(
                 go.Scatter(
-                    x = [player_df['season'][j] for j in range(idx_change_of_teams,i)], 
-                    y = [player_df['minutes_per_game'][j] for j in range(idx_change_of_teams,i)], 
+                    x = [player_df['season'][j] for j in range(idx_change_of_teams,i)],
+                    y = [player_df['minutes_per_game'][j] for j in range(idx_change_of_teams,i)],
                     name = f"Minutes per game for {teams.get(idx_change_of_teams)}"),
                     secondary_y = True,
             )
             idx_change_of_teams = i
-            
+
     fig.update_xaxes(title_text = "season")
     fig.update_yaxes(title_text = "games", secondary_y = False)
     fig.update_yaxes(title_text = "minutes", secondary_y = True)
@@ -233,10 +238,10 @@ def plot_player_games_played(player_name):
     return fig
 
 @time_this
-# @app.callback(
-#     Output('plot_a_player_tackles', 'figure'),
-#     Input('player_dropdown', 'value'),
-# )
+@app.callback(
+    Output('plot_a_player_tackles', 'figure'),
+    Input('player_dropdown', 'value'),
+)
 def get_player_tackles(player_name):
     player_id = get_id_from_name(player_name)
     player_def_df = all_df["defense"].loc[all_df["defense"]["id"] == player_id]
@@ -248,21 +253,21 @@ def get_player_tackles(player_name):
 
     fig = go.Figure()
     teams = player_def_df['squad']
-    
+
     idx_change_of_teams = 0
     for i in range (1, len(teams)):
         if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
             fig.add_trace(
                     go.Bar(
-                        name=f"won tackles for {teams.get(idx_change_of_teams)}", 
-                        x=[player_def_df["season"][j] for j in range(idx_change_of_teams,i)], 
-                        y=[player_def_df["tackles_won"][j] for j in range(idx_change_of_teams,i)], 
+                        name=f"won tackles for {teams.get(idx_change_of_teams)}",
+                        x=[player_def_df["season"][j] for j in range(idx_change_of_teams,i)],
+                        y=[player_def_df["tackles_won"][j] for j in range(idx_change_of_teams,i)],
                         marker=dict(color="Green"))
                     )
             fig.add_trace(
                     go.Bar(
-                        name=f"all tackles for {teams.get(idx_change_of_teams)}", 
-                        x=[player_def_df["season"][j] for j in range(idx_change_of_teams,i)], 
+                        name=f"all tackles for {teams.get(idx_change_of_teams)}",
+                        x=[player_def_df["season"][j] for j in range(idx_change_of_teams,i)],
                         y=[player_def_df["tackles"][j] for j in range(idx_change_of_teams,i)])
                     )
             idx_change_of_teams = i
@@ -302,68 +307,24 @@ def get_player_assists(player_name):
     return figure
 
 
-def update_point(trace, points, selector):
-    print("hello it works")
-
-
-def get_image():
-    # https://images.unsplash.com/photo-1546608235-3310a2494cdf?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=638&q=80
-    img = Image.open("soccerfield.png")
-    fig = go.Figure()
-    fig.add_layout_image(
-        dict(
-            source=img,
-            xref="x",
-            yref="y",
-            x=-1,
-            y=8,
-            sizex=7,
-            sizey=9,
-            sizing="stretch",
-            opacity=1,
-            layer="below",
-
-        )
-    )
-    y_max = 8
-    fig.add_trace(
-        go.Bar(x=[0, 0.5,1,1.5], y=[y_max for i in range(6)], opacity=0.2)
-    )
-
-
-    # fig = px.imshow(img, color_continuous_scale="gray")
-    fig.update_layout(
-        height=700,
-        width=1400,
-        coloraxis_showscale=False
-        )
-    fig.update_xaxes(showgrid=False,showticklabels=False, fixedrange=True)
-    fig.update_yaxes(showgrid=False,showticklabels=False, fixedrange=True)
-    fig.update_traces(
-        hovertemplate=None,
-        hoverinfo='skip'
-    )
-    print(fig.data)
-    print(fig.data[0])
-    fig.update_layout(template="plotly_white")
-    fig.data[0].on_click(update_point)
-    return fig
-# page layout
 
 @app.callback(
     Output('container-button-timestamp', 'children'),
-    Input('btn-nclicks-1', 'n_clicks'),
-    Input('btn-nclicks-2', 'n_clicks'),
-    Input('btn-nclicks-3', 'n_clicks')
+    Input('keeper', 'n_clicks'),
+    Input('defender', 'n_clicks'),
+    Input('midfielder', 'n_clicks'),
+    Input('striker', 'n_clicks')
 )
-def displayClick(btn1, btn2, btn3):
+def displayClick(btn1, btn2, btn3, btn4):
     changed_id = [p['prop_id'] for p in callback_context.triggered][0]
-    if 'btn-nclicks-1' in changed_id:
+    if 'keeper' in changed_id:
         msg = 'Button 1 was most recently clicked'
-    elif 'btn-nclicks-2' in changed_id:
+    elif 'defender' in changed_id:
         msg = 'Button 2 was most recently clicked'
-    elif 'btn-nclicks-3' in changed_id:
+    elif 'midfielder' in changed_id:
         msg = 'Button 3 was most recently clicked'
+    elif 'striker' in changed_id:
+        msg = "mqlsekjflds"
     else:
         msg = 'None of the buttons have been clicked yet'
     return html.Div(msg)
@@ -408,109 +369,127 @@ def plot_gk(player_name, category="clean sheets"):
     fig.update_yaxes(title_text = yaxes2, secondary_y = True)
     return fig
 
-app.layout = html.Div(children=[
+@app.callback(Output('page-content', 'children'),
+              [Input('url', 'pathname')])
+def display_page(pathname):
+    if pathname == "/" :
+        image_filename = "assets/soccerfield.png"
+        soccerfield = base64.b64encode(open(image_filename, 'rb').read())
+        return html.Div(children=[
+            html.H2(children='Soccer Statistics : Select the position you are looking for'),
+            html.Div(
+                children=[
+                    html.Img(src=f'data:image/png;base64,{soccerfield.decode()}', style={"width": "60%", "margin": "auto", "display": "block"}),
+                    html.Div(
+                        id="overlay",
+                        children=[
+                            dcc.Link(html.Button('Keepers', className="positionBtn", id='keeper', n_clicks=0), href='/keeper'),
+                            dcc.Link(html.Button('Defenders', className="positionBtn rectangleBtn", id='defender', n_clicks=0), href='/defender'),
+                            dcc.Link(html.Button('Midfielders', className="positionBtn rectangleBtn", id='midfielder', n_clicks=0), href='/midfielder'),
+                            dcc.Link(html.Button('Strikers', className="positionBtn rectangleBtn", id='striker', n_clicks=0), href='/striker'),
 
-    html.H1(children='Information Visualization Project'),
-    html.H2(children='Soccer Statistics'),
-    dcc.Graph(
-        figure=get_image(),
-        config={'displayModeBar': False},
-    ),
-    html.Div(
-        children=[
-            html.Button('Button 1', id='btn-nclicks-1', n_clicks=0),
-            html.Button('Button 2', id='btn-nclicks-2', n_clicks=0),
-            html.Button('Button 3', id='btn-nclicks-3', n_clicks=0),
-            html.Div(id='container-button-timestamp'),
-
-        ]
-    ),
-
-    html.Div(
-        className="row",
-        children=[
-            html.Div( ## Date select dcc components
-                [
-                    dcc.Markdown("Choose a field position"),
-                    dcc.Dropdown(
-                        all_df["info"].sort_values("position")["position"].unique(),
-                        all_df["info"].sort_values("position")["position"].unique()[0],
-                        id='position_dropdown',
-                        placeholder="Select a field position"
+                        ]
                     ),
-                ],
-                style={
-                    "display": "inline-block",
-                    "width": "40%",
-                    "margin-left": "20px",
-                    "verticalAlign": "top"
-                }
-            ),
-            html.Div( ## Stock select
-            [
-                dcc.Markdown("Choose a Player"),
-                dcc.Dropdown(
-                    all_df["info"].sort_values("name")["name"].unique(),
-                    all_df["info"].sort_values("name")["name"].unique()[0],
-                    id='player_dropdown',
-                    placeholder="Select a player"
+                ]
                 ),
-            ],
-            style={
-                "display": "inline-block",
-                "width": "15%"
-            }
-        ),
-        ]
-    ),
+        ])
+    else:
 
-    html.Div(children=[
-        html.Span(id="height"),
-    ]),
-    html.Div(children=[
-        html.Span(id="weight"),
-    ]),
-    html.Div(children=[
-        dcc.Graph(
-            id="plot_a_player_clubs_seasons",
-        ),
-        dcc.Graph(
-            id="plot_a_player_cards_seasons",
-            style={
-                "display": "inline-block",
-                "width": "40%",
-            }
-        ),
-        dcc.Graph(
-            id="plot_a_player_fouls_cards_seasons",
-            style={
-                "display": "inline-block",
-                "width": "40%",
-                "verticalAlign": "top"
-            }
-        ),
+        position_shortcuts = {"/midfielder": "M", "/keeper": "G", "/defender": "D", "/striker": "A"}
+        position_shortcut = position_shortcuts[pathname]
+        return html.Div(children=[
+            html.Div(
+                className="row",
+                children=[
+                    html.Div( ## Date select dcc components
+                        [
+                            dcc.Markdown("Choose a field position"),
+                            dcc.Dropdown(
+                                all_df["info"].loc[all_df["info"]["position"].str.contains(position_shortcut)].sort_values("position")["position"].unique(),
+                                all_df["info"].loc[all_df["info"]["position"].str.contains(position_shortcut)].sort_values("position")["position"].unique()[0],
+                                id='position_dropdown',
+                                placeholder="Select a field position"
+                            ),
+                        ],
+                        style={
+                            "display": "inline-block",
+                            "width": "40%",
+                            "marginLeft": "20px",
+                            "verticalAlign": "top"
+                        }
+                    ),
+                    html.Div( ## Stock select
+                    [
+                        dcc.Markdown("Choose a Player"),
+                        dcc.Dropdown(
+                            id='player_dropdown',
+                            placeholder="Select a player"
+                        ),
+                    ],
+                    style={
+                        "display": "inline-block",
+                        "width": "15%"
+                    }
+                ),
+                ]
+            ),
 
-    ]),
-    dcc.Graph(
-            figure=plot_player_games_played("Marco Benassi")
-    ),
-    dcc.Graph(
-            #id="plot_a_player_tackles",
-            figure=get_player_tackles("Marco Benassi")
-    ),
-    dcc.Graph(
-            id="plot_a_player_assists",
-    ),
-    dcc.Graph(
-        #id="plot_player_goals"
-        figure=plot_player_goals("Marco Benassi")
-    ),
+            html.Div(children=[
+                html.Span(id="height"),
+            ]),
+            html.Div(children=[
+                html.Span(id="weight"),
+            ]),
+            html.Div(children=[
+                dcc.Graph(
+                    id="plot_a_player_clubs_seasons",
+                ),
+                dcc.Graph(
+                    id="plot_a_player_cards_seasons",
+                    style={
+                        "display": "inline-block",
+                        "width": "40%",
+                    }
+                ),
+                dcc.Graph(
+                    id="plot_a_player_fouls_cards_seasons",
+                    style={
+                        "display": "inline-block",
+                        "width": "40%",
+                        "verticalAlign": "top"
+                    }
+                ),
 
-   #categories: "penalties", "saves" and "clean sheets"
-    dcc.Graph(
-        id="gk_graph",
-    )
+            ]),
+            dcc.Graph(
+                id="plot_player_games_played",
+                # figure=plot_player_games_played("Marco Benassi")
+            ),
+            dcc.Graph(
+                    id="plot_a_player_tackles",
+                    # figure=get_player_tackles("Marco Benassi")
+            ),
+            dcc.Graph(
+                    id="plot_a_player_assists",
+            ),
+            dcc.Graph(
+                #id="plot_player_goals"
+                figure=plot_player_goals("Marco Benassi")
+            ),
 
+        #categories: "penalties", "saves" and "clean sheets"
+            dcc.Graph(
+                id="gk_graph",
+            )
+
+        ])
+
+app.layout = html.Div([
+    # represents the browser address bar and doesn't render anything
+    dcc.Location(id='url', refresh=False),
+    # content will be rendered in this element
+    dcc.Link( html.H1(className="header-description", children='Information Visualization Project'), className="link", href="/"),
+    html.Div(id='page-content')
 ])
 
 if __name__ == '__main__':
