@@ -9,6 +9,7 @@ from plotly.subplots import make_subplots
 from PIL import Image
 import os
 import base64
+import random
 
 
 app = Dash(__name__)
@@ -17,6 +18,44 @@ app = Dash(__name__)
 # see https://plotly.com/python/px-arguments/ for more options
 
 all_df = get_all_dataframes("out/")
+
+TEAMS_COLORS = {}
+
+# Generate all the colors based on all available teams
+def generate_color(column):
+    for value in column.unique():
+        if not TEAMS_COLORS.get(value, None):
+            color = "#{:06x}".format(random.randint(0, 0xFFFFFF))
+            while color in TEAMS_COLORS.values():
+                color = "#{:06x}".format(random.randint(0, 0xFFFFFF))
+            TEAMS_COLORS[value] = color
+def map_color(team):
+    return TEAMS_COLORS[team]
+
+def unify_legend(fig):
+    # https://stackoverflow.com/questions/26939121/how-to-avoid-duplicate-legend-labels-in-plotly-or-pass-custom-legend-labels
+    names = set()
+    fig.for_each_trace(
+        lambda trace:
+            trace.update(showlegend=False)
+            if (trace.name in names) else names.add(trace.name))
+@time_this
+@app.callback(
+    # Output('position_dropdown', 'value'),
+    # Output('position_dropdown', 'options'),
+    Output('player_dropdown', 'value'),
+    Output('player_dropdown', 'options'),
+    Input('position_dropdown', 'value'),
+    Input('position_dropdown', 'options'),
+)
+def update_dropdowns(position, all_positions):
+    if position == "All":
+        all_positions.remove(position)
+        players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["position"].isin(all_positions)].unique()
+    else:
+        players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["position"] == position].unique()
+    player = players[0]
+    return player, players
 
 
 @time_this
@@ -139,19 +178,6 @@ def plot_a_player_fouls_cards_seasons(player_name):
         )
     )
 
-@time_this
-@app.callback(
-    # Output('position_dropdown', 'value'),
-    # Output('position_dropdown', 'options'),
-    Output('player_dropdown', 'value'),
-    Output('player_dropdown', 'options'),
-    Input('position_dropdown', 'value'),
-)
-def update_dropdowns(position):
-    players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["position"] == position].unique()
-    player = players[0]
-    return player, players
-
 
 @time_this
 @app.callback(
@@ -176,7 +202,7 @@ def get_player_club_evolution(player_name):
     figure = go.Figure()
     values = player_misc_df["squad"].value_counts()
     figure.add_trace(
-        go.Pie(labels=values.index.tolist(), values=values.tolist(), textinfo='label+percent')
+        go.Pie(labels=values.index.tolist(), values=values.tolist(), textinfo='label+percent', marker_colors=list(map(map_color, values.index.tolist())))
     )
     figure.update_layout(
         title=go.layout.Title(text=f"{player_name} all clubs from his career and played time percentage"),
@@ -187,6 +213,7 @@ def get_player_club_evolution(player_name):
     )
     return figure
 
+
 @time_this
 @app.callback(
     Output('plot_player_games_played', 'figure'),
@@ -194,34 +221,32 @@ def get_player_club_evolution(player_name):
 )
 def plot_player_games_played(player_name):
     player_id = get_id_from_name(player_name)
-    player_df = all_df["playing_time"].loc[all_df["playing_time"]["id"] == player_id]
-
+    player_df = all_df["playing_time"].loc[all_df["playing_time"]["id"] == player_id].sort_values('season')
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     teams = player_df['squad']
-
     # for the games played (bar plot)
     idx_change_of_teams = 0
-    for i in range (1, len(teams)):
-        if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
+    for i in range (1, len(teams)+1):
+        if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
             fig.add_trace(
                 go.Bar(
-                    name = f"Games played for {teams.get(idx_change_of_teams)}",
-                    x = [player_df['season'][j] for j in range(idx_change_of_teams,i)],
-                    y = [player_df['games'][j] for j in range(idx_change_of_teams,i)]),
-                    secondary_y = False,
-            )
-            idx_change_of_teams = i
+                    name = f"Games played for {teams.iloc[idx_change_of_teams]}",
+                    x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(), # [player_df['season'][j] for j in range(idx_change_of_teams,i)],
+                    y = player_df.iloc[idx_change_of_teams:i, :]["games"].tolist(), # [player_df['games'][j] for j in range(idx_change_of_teams,i)]),
+                    marker_color=TEAMS_COLORS[teams.iloc[idx_change_of_teams]]
 
-    # for the scoring percentage (scatter plot)
-    idx_change_of_teams = 0
-    for i in range (1, len(teams)):
-        if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
+                ),secondary_y = False,
+
+            )
             fig.add_trace(
                 go.Scatter(
-                    x = [player_df['season'][j] for j in range(idx_change_of_teams,i)],
-                    y = [player_df['minutes_per_game'][j] for j in range(idx_change_of_teams,i)],
-                    name = f"Minutes per game for {teams.get(idx_change_of_teams)}"),
-                    secondary_y = True,
+                    name = f"Minutes per game for {teams.iloc[idx_change_of_teams]}",
+                    x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(), # [player_df['season'][j] for j in range(idx_change_of_teams,i)],
+                    y = player_df.iloc[idx_change_of_teams:i, :]["minutes_per_game"].tolist(), # [player_df['games'][j] for j in range(idx_change_of_teams,i)]),
+                    marker_color="#000000"
+
+                ),secondary_y = True,
+
             )
             idx_change_of_teams = i
 
@@ -235,6 +260,7 @@ def plot_player_games_played(player_name):
                 "color": "black"
             },
     )
+    unify_legend(fig)
     return fig
 
 @time_this
@@ -246,31 +272,39 @@ def get_player_tackles(player_name):
     player_id = get_id_from_name(player_name)
     player_def_df = all_df["defense"].loc[all_df["defense"]["id"] == player_id]
 
-    # fig = go.Figure(data=[
-    #     go.Bar(name="won tackles", x=player_def_df["season"], y=player_def_df["tackles_won"], marker=dict(color="Green")),
-    #     go.Bar(name="all tackles", x=player_def_df["season"], y=player_def_df["tackles"])
-    # ])
-
     fig = go.Figure()
     teams = player_def_df['squad']
 
     idx_change_of_teams = 0
-    for i in range (1, len(teams)):
-        if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
+    for i in range (1, len(teams)+1):
+        if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
+            fig.add_trace(
+                go.Bar(
+                    name = f"won tackles for {teams.iloc[idx_change_of_teams]}",
+                    x = player_def_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
+                    y = player_def_df.iloc[idx_change_of_teams:i, :]["tackles_won"].tolist(),
+                    marker_color=TEAMS_COLORS[teams.iloc[idx_change_of_teams]]
+                )
+            )
             fig.add_trace(
                     go.Bar(
-                        name=f"won tackles for {teams.get(idx_change_of_teams)}",
-                        x=[player_def_df["season"][j] for j in range(idx_change_of_teams,i)],
-                        y=[player_def_df["tackles_won"][j] for j in range(idx_change_of_teams,i)],
-                        marker=dict(color="Green"))
+                        name=f"all tackles for {teams.iloc[idx_change_of_teams]}",
+                        x = player_def_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
+                        y = player_def_df.iloc[idx_change_of_teams:i, :]["tackles"].tolist(),
+                        marker_color=TEAMS_COLORS[teams.iloc[idx_change_of_teams]]
                     )
-            fig.add_trace(
-                    go.Bar(
-                        name=f"all tackles for {teams.get(idx_change_of_teams)}",
-                        x=[player_def_df["season"][j] for j in range(idx_change_of_teams,i)],
-                        y=[player_def_df["tackles"][j] for j in range(idx_change_of_teams,i)])
-                    )
+            )
             idx_change_of_teams = i
+    fig.update_xaxes(title_text = "season")
+    fig.update_yaxes(title_text = "Number of Tackles")
+    fig.update_layout(
+        title=go.layout.Title(text=f"{player_name} all tackles vs won tackles"),
+        font={
+                "size": 12,
+                "color": "black"
+            },
+    )
+    unify_legend(fig)
     return fig
 
 @time_this
@@ -306,28 +340,6 @@ def get_player_assists(player_name):
     )
     return figure
 
-
-
-@app.callback(
-    Output('container-button-timestamp', 'children'),
-    Input('keeper', 'n_clicks'),
-    Input('defender', 'n_clicks'),
-    Input('midfielder', 'n_clicks'),
-    Input('striker', 'n_clicks')
-)
-def displayClick(btn1, btn2, btn3, btn4):
-    changed_id = [p['prop_id'] for p in callback_context.triggered][0]
-    if 'keeper' in changed_id:
-        msg = 'Button 1 was most recently clicked'
-    elif 'defender' in changed_id:
-        msg = 'Button 2 was most recently clicked'
-    elif 'midfielder' in changed_id:
-        msg = 'Button 3 was most recently clicked'
-    elif 'striker' in changed_id:
-        msg = "mqlsekjflds"
-    else:
-        msg = 'None of the buttons have been clicked yet'
-    return html.Div(msg)
 
 @time_this
 @app.callback(
@@ -369,8 +381,12 @@ def plot_gk(player_name, category="clean sheets"):
     fig.update_yaxes(title_text = yaxes2, secondary_y = True)
     return fig
 
-@app.callback(Output('page-content', 'children'),
-              [Input('url', 'pathname')])
+
+# modify Pages
+@app.callback(
+    Output('page-content', 'children'),
+    [Input('url', 'pathname')]
+)
 def display_page(pathname):
     if pathname == "/" :
         image_filename = "assets/soccerfield.png"
@@ -395,30 +411,33 @@ def display_page(pathname):
         ])
     else:
 
-        position_shortcuts = {"/midfielder": "M", "/keeper": "G", "/defender": "D", "/striker": "A"}
+        position_shortcuts = {"/midfielder": "M", "/keeper": "G", "/defender": "D", "/striker": "A|F"}
+        position_text = {"/midfielder": "Midfielders", "/keeper": "Goal Keepers", "/defender": "Defenders", "/striker": "Strikers"}
         position_shortcut = position_shortcuts[pathname]
+        positions = all_df["info"].loc[all_df["info"]["position"].str.contains(position_shortcut)].sort_values("position")["position"].unique().tolist()
+        positions.insert(0, "All")
+        positions = np.array(positions)
         return html.Div(children=[
+            html.H2(children=f'Soccer Statistics : {position_text[pathname]}'),
             html.Div(
                 className="row",
                 children=[
                     html.Div( ## Date select dcc components
+                        id='div_position_dd',
+                        children=
                         [
-                            dcc.Markdown("Choose a field position"),
+                            dcc.Markdown("Choose a specific field position"),
                             dcc.Dropdown(
-                                all_df["info"].loc[all_df["info"]["position"].str.contains(position_shortcut)].sort_values("position")["position"].unique(),
-                                all_df["info"].loc[all_df["info"]["position"].str.contains(position_shortcut)].sort_values("position")["position"].unique()[0],
+                                positions,
+                                positions[0],
                                 id='position_dropdown',
                                 placeholder="Select a field position"
                             ),
                         ],
-                        style={
-                            "display": "inline-block",
-                            "width": "40%",
-                            "marginLeft": "20px",
-                            "verticalAlign": "top"
-                        }
                     ),
                     html.Div( ## Stock select
+                    id="div_choose_player_dd",
+                    children=
                     [
                         dcc.Markdown("Choose a Player"),
                         dcc.Dropdown(
@@ -426,10 +445,6 @@ def display_page(pathname):
                             placeholder="Select a player"
                         ),
                     ],
-                    style={
-                        "display": "inline-block",
-                        "width": "15%"
-                    }
                 ),
                 ]
             ),
@@ -493,4 +508,8 @@ app.layout = html.Div([
 ])
 
 if __name__ == '__main__':
+    generate_color(all_df["info"]["club"])
+    for name, df in all_df.items():
+        if name != 'info':
+            generate_color(df["squad"])
     app.run_server(debug=True, threaded=True)
