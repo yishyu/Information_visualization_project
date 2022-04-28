@@ -65,3 +65,15 @@ html{
 
 
 }
+
+#div_position_dd {
+    display: inline-block;
+    width: 20%;
+    margin-left: 20px;
+    vertical-align: top;
+}
+
+#div_choose_player_dd {
+    display: inline-block;
+    width: 15%;
+}

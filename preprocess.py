@@ -31,8 +31,9 @@ def select_columns_from_files():
     for name, columns in kept_columns.items():
         create_new_csv(name, all_df[name], columns)
 
-# keep interesting columns of the file
-select_columns_from_files()
+if __name__ == "__main__":
+    # keep interesting columns of the file
+    select_columns_from_files()
 
 
 
