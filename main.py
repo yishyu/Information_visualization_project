@@ -503,8 +503,11 @@ app.layout = html.Div([
     # represents the browser address bar and doesn't render anything
     dcc.Location(id='url', refresh=False),
     # content will be rendered in this element
-    dcc.Link( html.H1(className="header-description", children='Information Visualization Project'), className="link", href="/"),
-    html.Div(id='page-content')
+    html.Div([  dcc.Link(html.H1(children='Soccer Statistics', className="header-title"), className="link", href="/"),
+                html.H3(children="This website contains statistics about ~3000 (ex)players in the 5 best leagues in Europe.", className="header-description"),
+                html.H3(children="(Spain, Belgium, Germany, France & Italy)", className="header-description"),
+                ], className="header"),
+    html.Div(id='page-content'),
 ])
 
 if __name__ == '__main__':

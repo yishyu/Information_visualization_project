@@ -1,13 +1,10 @@
+.body {
+    font-family: sans-serif;
+}
+
 html{
     /*overflow-y: hidden;*/
     overflow-x: hidden;
-}
-.header-description {
-    background: #FFFFFF;
-    color: #CFCFCF;
-    margin: 4px auto;
-    text-align: center;
-    max-width: 384px;
 }
 
 .link {
@@ -76,4 +73,27 @@ html{
 #div_choose_player_dd {
     display: inline-block;
     width: 15%;
+}
+
+/* heading */
+.header {
+    background-color: #222222;
+    height: 200px;
+    padding: 16px 0 0 0;
+    font-family: sans-serif;
+}
+
+.header-title {
+    color: #FFFFFF;
+    font-size: 40px;
+    font-weight: bold;
+    text-align: center;
+    margin: 0 auto;
+}
+
+.header-description {
+    color: #CFCFCF;
+    margin: 4px auto;
+    text-align: center;
+    max-width: 500px;
 }
