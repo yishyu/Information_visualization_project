@@ -346,11 +346,6 @@ def get_player_assists(player_name):
     return figure
 
 
-@time_this
-@app.callback(
-    Output('gk_graph', 'figure'),
-    Input('player_dropdown', 'value')
-)
 def plot_gk(player_name, category="clean sheets"):
     player_id = get_id_from_name(player_name)
     player_df = all_df["keeper"].loc[all_df["keeper"]["id"] == player_id]
@@ -385,6 +380,32 @@ def plot_gk(player_name, category="clean sheets"):
     fig.update_yaxes(title_text = yaxes)
     fig.update_yaxes(title_text = yaxes2, secondary_y = True)
     return fig
+
+@time_this
+@app.callback(
+    Output('plot_clean_sheets', 'figure'),
+    Input('player_dropdown', 'value')
+)
+def plot_clean_sheets(player_name):
+    return plot_gk(player_name, 'clean sheets')
+
+
+@time_this
+@app.callback(
+    Output('plot_saves', 'figure'),
+    Input('player_dropdown', 'value')
+)
+def plot_saves(player_name):
+    return plot_gk(player_name, 'saves')
+
+
+@time_this
+@app.callback(
+    Output('plot_penalties', 'figure'),
+    Input('player_dropdown', 'value')
+)
+def plot_penalties(player_name):
+    return plot_gk(player_name, 'penalties')
 
 @app.callback(
     Output('plot_a_player_fouls_cards_seasons', 'style'),
@@ -442,10 +463,12 @@ def display_page(pathname):
         positions = all_df["info"].loc[all_df["info"]["position"].str.contains(position_shortcut)].sort_values("position")["position"].unique().tolist()
         positions.insert(0, "All")
         positions = np.array(positions)
-        if position_shortcut == "G":
-            gk_graphs = dcc.Graph (
-                id="gk_graph",
-            )
+        if position_shortcut == "G":  # the goalkeeper has very specific stats
+            gk_graphs = [
+                dcc.Graph (id="plot_clean_sheets"),
+                dcc.Graph (id="plot_penalties"),
+                dcc.Graph (id="plot_saves")
+            ]
             graph_type = None
             other_graphs = None
         else:
@@ -513,10 +536,10 @@ def display_page(pathname):
             html.Div(children=other_graphs),
 
         #categories: "penalties", "saves" and "clean sheets"
-            gk_graphs,
+            html.Div(children=gk_graphs),
 
         ])
-
+app.title = "Soccer Statistics"
 app.layout = html.Div([
     # represents the browser address bar and doesn't render anything
     dcc.Location(id='url', refresh=False),
