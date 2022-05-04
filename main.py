@@ -18,7 +18,6 @@ app = Dash(__name__)
 # see https://plotly.com/python/px-arguments/ for more options
 
 all_df = get_all_dataframes("out/")
-
 TEAMS_COLORS = {}
 
 # Generate all the colors based on all available teams
@@ -110,7 +109,7 @@ def plot_player_goals(player_name):
                         ),
                         secondary_y = True,
                 )
-                idx_change_of_teams = i 
+                idx_change_of_teams = i
 
         fig.update_xaxes(title_text = "season")
         fig.update_yaxes(title_text = "goals", secondary_y = False)
@@ -256,6 +255,7 @@ def plot_player_games_played(player_name):
     fig.update_yaxes(title_text = "games", secondary_y = False)
     fig.update_yaxes(title_text = "minutes", secondary_y = True)
     fig.update_layout(
+        barmode="overlay",
         title=go.layout.Title(text=f"{player_name} games played vs minutes per game"),
         font={
                 "size": 12,
@@ -302,6 +302,7 @@ def get_player_tackles(player_name):
     fig.update_yaxes(title_text = "Number of Tackles")
     #fig.update_yaxes(title_text = "Number of Tackles won",secondary_y = True)
     fig.update_layout(
+        barmode="overlay",
         title=go.layout.Title(text=f"{player_name} all tackles vs won tackles"),
         font={
                 "size": 12,
@@ -385,6 +386,26 @@ def plot_gk(player_name, category="clean sheets"):
     fig.update_yaxes(title_text = yaxes2, secondary_y = True)
     return fig
 
+@app.callback(
+    Output('plot_a_player_fouls_cards_seasons', 'style'),
+    Output('plot_a_player_tackles', 'style'),
+
+    Output('plot_player_goals', 'style'),
+    Output('plot_a_player_assists', 'style'),
+    Output('plot_a_player_cards_seasons', 'style'),
+    Output('plot_player_games_played', 'style'),
+    Input('graph_type', 'value'),
+)
+def display_graph(graph_type):
+    no_display = {"display": "none"}
+    display = {"display": "block"}
+    # plot_player_games_played, plot_a_player_cards_seasons, plot_a_player_assists, plot_player_goals, plot_a_player_tackles, plot_a_player_fouls_cards_seasons
+    if graph_type == "ATT":
+        return display, display, display, display, no_display, no_display
+    elif graph_type == "MID":
+        return display, display, display, no_display, display, no_display
+    elif graph_type == "DEF":
+        return display, display, no_display, no_display, display, display
 
 # modify Pages
 @app.callback(
@@ -396,7 +417,7 @@ def display_page(pathname):
         image_filename = "assets/soccerfield.png"
         soccerfield = base64.b64encode(open(image_filename, 'rb').read())
         return html.Div(children=[
-            html.H2(children='Soccer Statistics : Select the position you are looking for'),
+            html.H2(id="select_position_title", children='Select the position you are looking for'),
             html.Div(
                 children=[
                     html.Img(src=f'data:image/png;base64,{soccerfield.decode()}', style={"width": "60%", "margin": "auto", "display": "block"}),
@@ -421,8 +442,35 @@ def display_page(pathname):
         positions = all_df["info"].loc[all_df["info"]["position"].str.contains(position_shortcut)].sort_values("position")["position"].unique().tolist()
         positions.insert(0, "All")
         positions = np.array(positions)
+        if position_shortcut == "G":
+            gk_graphs = dcc.Graph (
+                id="gk_graph",
+            )
+            graph_type = None
+            other_graphs = None
+        else:
+            gk_graphs = None
+            graph_type = dcc.RadioItems(
+                id="graph_type",
+                options = {
+                    'ATT': 'Attackers Graphs ',
+                    'DEF': 'Defenders Graphs ',
+                    'MID': 'Midfielders Graphs ',
+                },
+                value = 'ATT'
+            )
+            other_graphs = [
+                dcc.Graph(id="plot_a_player_cards_seasons"),
+                dcc.Graph(id="plot_player_games_played"),
+                dcc.Graph(id="plot_a_player_fouls_cards_seasons"),
+                dcc.Graph(id="plot_a_player_tackles"),
+                dcc.Graph(id="plot_a_player_assists"),
+                dcc.Graph(id="plot_player_goals"),
+            ]
         return html.Div(children=[
             html.H2(children=f'Soccer Statistics : {position_text[pathname]}'),
+            # radio buttons for graph selection
+            graph_type,
             html.Div(
                 className="row",
                 children=[
@@ -459,68 +507,25 @@ def display_page(pathname):
             html.Div(children=[
                 html.Span(id="weight"),
             ]),
-            html.Div(children=[
-                dcc.Graph(
-                    id="plot_a_player_clubs_seasons",
-                ),
-                dcc.Graph(
-                    id="plot_a_player_cards_seasons",
-                    style={
-                        "display": "inline-block",
-                        "width": "40%",
-                    }
-                ),
-                dcc.Graph(
-                    id="plot_a_player_fouls_cards_seasons",
-                    style={
-                        "display": "inline-block",
-                        "width": "40%",
-                        "verticalAlign": "top"
-                    }
-                ),
-
-            ]),
             dcc.Graph(
-                id="plot_player_games_played",
-                # figure=plot_player_games_played("Marco Benassi")
+                id="plot_a_player_clubs_seasons",
             ),
-            dcc.Graph(
-                    id="plot_a_player_tackles",
-                    # figure=get_player_tackles("Marco Benassi")
-            ),
-            dcc.Graph(
-                    id="plot_a_player_assists",
-            ),
-            dcc.Graph(
-                id="plot_player_goals"
-                #figure=plot_player_goals("Marco Benassi")
-            ),
+            html.Div(children=other_graphs),
 
         #categories: "penalties", "saves" and "clean sheets"
-            dcc.Graph(
-                id="gk_graph",
-            )
+            gk_graphs,
 
         ])
 
 app.layout = html.Div([
     # represents the browser address bar and doesn't render anything
     dcc.Location(id='url', refresh=False),
-    
+
     # content will be rendered in this element
     html.Div([  dcc.Link(html.H1(children='Soccer Statistics', className="header-title"), className="link", href="/"),
                 html.H3(children="This website contains statistics about ~3000 (ex)players in the 5 best leagues in Europe.", className="header-description"),
                 html.H3(children="(Spain, Belgium, Germany, France & Italy)", className="header-description"),
                 ], className="header"),
-    # radio buttons for graph selection
-    dcc.RadioItems(
-        options = {
-        'ATT': 'Attackers graphs ',
-        'DEF': 'Defenders graphs ',
-        'MID': 'Midfielders Graphs '
-        }, 
-        value = 'ATT'
-        ),
     html.Div(id='page-content'),
 ])
 
