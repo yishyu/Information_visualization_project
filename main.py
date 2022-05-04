@@ -78,48 +78,50 @@ def get_name_from_id(player_id):
 
 
 @time_this
-# @app.callback(
-#     Output('plot_player_goals', 'figure'),
-#     Input('player_dropdown', 'value'),
-# )
+@app.callback(
+    Output('plot_player_goals', 'figure'),
+    Input('player_dropdown', 'value'),
+)
 def plot_player_goals(player_name):
     player_id = get_id_from_name(player_name)
     try:
         player_df = all_df["shooting"].loc[all_df["shooting"]["id"] == player_id]
-
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         teams = player_df['squad']
 
-        # for the goals (bar plot)
         idx_change_of_teams = 0
-        for i in range (1, len(teams)):
-            if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
+        for i in range (1, len(teams)+1):
+            if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
                 fig.add_trace(
                     go.Bar(
-                        name = f"Actual goals for {teams.get(idx_change_of_teams)}",
-                        x = [player_df['season'][j] for j in range(idx_change_of_teams,i)],
-                        y = [player_df['goals'][j] for j in range(idx_change_of_teams,i)]),
+                        name = f"Actual goals for {teams.iloc[idx_change_of_teams]}",
+                        x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
+                        y = player_df.iloc[idx_change_of_teams:i, :]["goals"].tolist(),
+                        marker_color=TEAMS_COLORS[teams.iloc[idx_change_of_teams]]
+                        ),
                         secondary_y = False,
                 )
-                idx_change_of_teams = i
-
-        # for the scoring percentage (scatter plot)
-        idx_change_of_teams = 0
-        for i in range (1, len(teams)):
-            if((teams.get(i) != teams.get(i-1)) or (i == len(teams)-1)):
                 fig.add_trace(
                     go.Scatter(
-                        x = [player_df['season'][j] for j in range(idx_change_of_teams,i)],
-                        y = [player_df['goals_per_shot_on_target'][j] for j in range(idx_change_of_teams,i)],
-                        name = f"Scoring percentage on attempts on goal for {teams.get(idx_change_of_teams)}"),
+                        x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
+                        y = player_df.iloc[idx_change_of_teams:i, :]["goals_per_shot_on_target"].tolist(),
+                        name = f"Scoring percentage on attempts on goal for {teams.iloc[idx_change_of_teams]}",
+                        marker_color="#000000"
+                        ),
                         secondary_y = True,
                 )
-                idx_change_of_teams = i
+                idx_change_of_teams = i 
 
         fig.update_xaxes(title_text = "season")
         fig.update_yaxes(title_text = "goals", secondary_y = False)
         fig.update_yaxes(title_text = "percentage", secondary_y = True)
-
+        fig.update_layout(
+        title=go.layout.Title(text=f"{player_name} scored goals vs scoring percentage"),
+        font={
+                "size": 12,
+                "color": "black"
+            },
+    )
     except:
         fig = go.Figure()
     return fig
@@ -272,7 +274,8 @@ def get_player_tackles(player_name):
     player_id = get_id_from_name(player_name)
     player_def_df = all_df["defense"].loc[all_df["defense"]["id"] == player_id]
 
-    fig = go.Figure()
+    #fig = go.Figure()
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
     teams = player_def_df['squad']
 
     idx_change_of_teams = 0
@@ -280,23 +283,24 @@ def get_player_tackles(player_name):
         if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
             fig.add_trace(
                 go.Bar(
+                    name=f"all tackles for {teams.iloc[idx_change_of_teams]}",
+                    x = player_def_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
+                    y = player_def_df.iloc[idx_change_of_teams:i, :]["tackles"].tolist(),
+                    marker_color=TEAMS_COLORS[teams.iloc[idx_change_of_teams]]
+                )#,secondary_y = False,
+            )
+            fig.add_trace(
+                go.Scatter(
                     name = f"won tackles for {teams.iloc[idx_change_of_teams]}",
                     x = player_def_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_def_df.iloc[idx_change_of_teams:i, :]["tackles_won"].tolist(),
-                    marker_color=TEAMS_COLORS[teams.iloc[idx_change_of_teams]]
-                )
-            )
-            fig.add_trace(
-                    go.Bar(
-                        name=f"all tackles for {teams.iloc[idx_change_of_teams]}",
-                        x = player_def_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
-                        y = player_def_df.iloc[idx_change_of_teams:i, :]["tackles"].tolist(),
-                        marker_color=TEAMS_COLORS[teams.iloc[idx_change_of_teams]]
-                    )
+                    marker_color="#000000"
+                )#,secondary_y = True,
             )
             idx_change_of_teams = i
     fig.update_xaxes(title_text = "season")
     fig.update_yaxes(title_text = "Number of Tackles")
+    #fig.update_yaxes(title_text = "Number of Tackles won",secondary_y = True)
     fig.update_layout(
         title=go.layout.Title(text=f"{player_name} all tackles vs won tackles"),
         font={
@@ -304,7 +308,7 @@ def get_player_tackles(player_name):
                 "color": "black"
             },
     )
-    unify_legend(fig)
+    #unify_legend(fig)
     return fig
 
 @time_this
@@ -488,8 +492,8 @@ def display_page(pathname):
                     id="plot_a_player_assists",
             ),
             dcc.Graph(
-                #id="plot_player_goals"
-                figure=plot_player_goals("Marco Benassi")
+                id="plot_player_goals"
+                #figure=plot_player_goals("Marco Benassi")
             ),
 
         #categories: "penalties", "saves" and "clean sheets"
@@ -502,11 +506,21 @@ def display_page(pathname):
 app.layout = html.Div([
     # represents the browser address bar and doesn't render anything
     dcc.Location(id='url', refresh=False),
+    
     # content will be rendered in this element
     html.Div([  dcc.Link(html.H1(children='Soccer Statistics', className="header-title"), className="link", href="/"),
                 html.H3(children="This website contains statistics about ~3000 (ex)players in the 5 best leagues in Europe.", className="header-description"),
                 html.H3(children="(Spain, Belgium, Germany, France & Italy)", className="header-description"),
                 ], className="header"),
+    # radio buttons for graph selection
+    dcc.RadioItems(
+        options = {
+        'ATT': 'Attackers graphs ',
+        'DEF': 'Defenders graphs ',
+        'MID': 'Midfielders Graphs '
+        }, 
+        value = 'ATT'
+        ),
     html.Div(id='page-content'),
 ])
 
