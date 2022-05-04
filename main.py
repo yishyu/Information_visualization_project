@@ -19,18 +19,32 @@ app = Dash(__name__)
 
 all_df = get_all_dataframes("out/")
 
-TEAMS_COLORS = {}
+# colors: https://plotly.com/python/discrete-color/
+TEAMS_COLORS = [
+    '#1f77b4',  # muted blue
+    '#ff7f0e',  # safety orange
+    '#2ca02c',  # cooked asparagus green
+    '#d62728',  # brick red
+    '#9467bd',  # muted purple
+    '#8c564b',  # chestnut brown
+    '#e377c2',  # raspberry yogurt pink
+    '#7f7f7f',  # middle gray
+    '#bcbd22',  # curry yellow-green
+    '#17becf'   # blue-teal
+]
+# TEAMS_COLORS = {}
+
 
 # Generate all the colors based on all available teams
-def generate_color(column):
-    for value in column.unique():
-        if not TEAMS_COLORS.get(value, None):
-            color = "#{:06x}".format(random.randint(0, 0xFFFFFF))
-            while color in TEAMS_COLORS.values():
-                color = "#{:06x}".format(random.randint(0, 0xFFFFFF))
-            TEAMS_COLORS[value] = color
-def map_color(team):
-    return TEAMS_COLORS[team]
+# def generate_color(column):
+#     for value in column.unique():
+#         if not TEAMS_COLORS.get(value, None):
+#             color = "#{:06x}".format(random.randint(0, 0xFFFFFF))
+#             while color in TEAMS_COLORS.values():
+#                 color = "#{:06x}".format(random.randint(0, 0xFFFFFF))
+#             TEAMS_COLORS[value] = color
+# def map_color(team):
+#     return TEAMS_COLORS[team]
 
 def unify_legend(fig):
     # https://stackoverflow.com/questions/26939121/how-to-avoid-duplicate-legend-labels-in-plotly-or-pass-custom-legend-labels
@@ -88,7 +102,7 @@ def plot_player_goals(player_name):
         player_df = all_df["shooting"].loc[all_df["shooting"]["id"] == player_id]
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         teams = player_df['squad']
-
+        team_nr = 0
         idx_change_of_teams = 0
         for i in range (1, len(teams)+1):
             if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
@@ -97,7 +111,7 @@ def plot_player_goals(player_name):
                         name = f"Actual goals for {teams.iloc[idx_change_of_teams]}",
                         x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                         y = player_df.iloc[idx_change_of_teams:i, :]["goals"].tolist(),
-                        marker_color=TEAMS_COLORS[teams.iloc[idx_change_of_teams]]
+                        marker_color=TEAMS_COLORS[team_nr]
                         ),
                         secondary_y = False,
                 )
@@ -111,6 +125,7 @@ def plot_player_goals(player_name):
                         secondary_y = True,
                 )
                 idx_change_of_teams = i 
+                team_nr = team_nr + 1
 
         fig.update_xaxes(title_text = "season")
         fig.update_yaxes(title_text = "goals", secondary_y = False)
@@ -202,9 +217,15 @@ def get_player_club_evolution(player_name):
     player_id = get_id_from_name(player_name)
     player_misc_df = all_df["misc"].loc[all_df["misc"]["id"] == player_id]
     figure = go.Figure()
-    values = player_misc_df["squad"].value_counts()
+    unique_teams = np.unique(player_misc_df["squad"])
+    teams = player_misc_df["squad"] 
+    print(dict(colors=[TEAMS_COLORS[i] for i in range(0, len(unique_teams))]))
     figure.add_trace(
-        go.Pie(labels=values.index.tolist(), values=values.tolist(), textinfo='label+percent', marker_colors=list(map(map_color, values.index.tolist())))
+        go.Pie(
+            labels=unique_teams, 
+            textinfo='label+percent', 
+            marker=dict(colors=[TEAMS_COLORS[i] for i in range(0, len(unique_teams))])
+        )
     )
     figure.update_layout(
         title=go.layout.Title(text=f"{player_name} all clubs from his career and played time percentage"),
@@ -227,6 +248,7 @@ def plot_player_games_played(player_name):
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     teams = player_df['squad']
     # for the games played (bar plot)
+    team_nr = 0
     idx_change_of_teams = 0
     for i in range (1, len(teams)+1):
         if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
@@ -235,7 +257,7 @@ def plot_player_games_played(player_name):
                     name = f"Games played for {teams.iloc[idx_change_of_teams]}",
                     x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(), # [player_df['season'][j] for j in range(idx_change_of_teams,i)],
                     y = player_df.iloc[idx_change_of_teams:i, :]["games"].tolist(), # [player_df['games'][j] for j in range(idx_change_of_teams,i)]),
-                    marker_color=TEAMS_COLORS[teams.iloc[idx_change_of_teams]]
+                    marker_color=TEAMS_COLORS[team_nr]
 
                 ),secondary_y = False,
 
@@ -251,6 +273,7 @@ def plot_player_games_played(player_name):
 
             )
             idx_change_of_teams = i
+            team_nr = team_nr + 1
 
     fig.update_xaxes(title_text = "season")
     fig.update_yaxes(title_text = "games", secondary_y = False)
@@ -277,7 +300,7 @@ def get_player_tackles(player_name):
     #fig = go.Figure()
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     teams = player_def_df['squad']
-
+    team_nr = 0
     idx_change_of_teams = 0
     for i in range (1, len(teams)+1):
         if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
@@ -286,7 +309,7 @@ def get_player_tackles(player_name):
                     name=f"all tackles for {teams.iloc[idx_change_of_teams]}",
                     x = player_def_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_def_df.iloc[idx_change_of_teams:i, :]["tackles"].tolist(),
-                    marker_color=TEAMS_COLORS[teams.iloc[idx_change_of_teams]]
+                    marker_color=TEAMS_COLORS[team_nr]
                 )#,secondary_y = False,
             )
             fig.add_trace(
@@ -298,10 +321,12 @@ def get_player_tackles(player_name):
                 )#,secondary_y = True,
             )
             idx_change_of_teams = i
+            team_nr = team_nr + 1
     fig.update_xaxes(title_text = "season")
     fig.update_yaxes(title_text = "Number of Tackles")
     #fig.update_yaxes(title_text = "Number of Tackles won",secondary_y = True)
     fig.update_layout(
+        barmode="overlay",
         title=go.layout.Title(text=f"{player_name} all tackles vs won tackles"),
         font={
                 "size": 12,
@@ -525,8 +550,8 @@ app.layout = html.Div([
 ])
 
 if __name__ == '__main__':
-    generate_color(all_df["info"]["club"])
-    for name, df in all_df.items():
-        if name != 'info':
-            generate_color(df["squad"])
+    # generate_color(all_df["info"]["club"])
+    # for name, df in all_df.items():
+    #     if name != 'info':
+    #         generate_color(df["squad"])
     app.run_server(debug=True, threaded=True)
