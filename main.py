@@ -90,16 +90,20 @@ def plot_player_goals(player_name):
         player_df = all_df["shooting"].loc[all_df["shooting"]["id"] == player_id]
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         teams = player_df['squad']
+        team_colors = {}
+        counter = 0
         team_nr = 0
         idx_change_of_teams = 0
         for i in range (1, len(teams)+1):
             if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
+                if (not(teams.iloc[counter] in list(team_colors.keys()))):
+                    team_colors[teams.iloc[counter]] =  TEAMS_COLORS[team_nr]
                 fig.add_trace(
                     go.Bar(
                         name = f"Actual goals for {teams.iloc[idx_change_of_teams]}",
                         x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                         y = player_df.iloc[idx_change_of_teams:i, :]["goals"].tolist(),
-                        marker_color=TEAMS_COLORS[team_nr]
+                        marker_color = team_colors[teams.iloc[counter]]
                         ),
                         secondary_y = False,
                 )
@@ -114,7 +118,7 @@ def plot_player_goals(player_name):
                 )
                 idx_change_of_teams = i 
                 team_nr = team_nr + 1
-
+            counter = counter + 1
         fig.update_xaxes(title_text = "season")
         fig.update_yaxes(title_text = "goals", secondary_y = False)
         fig.update_yaxes(title_text = "percentage", secondary_y = True)
@@ -236,17 +240,20 @@ def plot_player_games_played(player_name):
     player_df = all_df["playing_time"].loc[all_df["playing_time"]["id"] == player_id].sort_values('season')
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     teams = player_df['squad']
-    # for the games played (bar plot)
+    team_colors = {}
+    counter = 0
     team_nr = 0
     idx_change_of_teams = 0
     for i in range (1, len(teams)+1):
         if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
+            if (not(teams.iloc[counter] in list(team_colors.keys()))):
+                    team_colors[teams.iloc[counter]] =  TEAMS_COLORS[team_nr]
             fig.add_trace(
                 go.Bar(
                     name = f"Games played for {teams.iloc[idx_change_of_teams]}",
                     x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(), # [player_df['season'][j] for j in range(idx_change_of_teams,i)],
                     y = player_df.iloc[idx_change_of_teams:i, :]["games"].tolist(), # [player_df['games'][j] for j in range(idx_change_of_teams,i)]),
-                    marker_color=TEAMS_COLORS[team_nr]
+                    marker_color = team_colors[teams.iloc[counter]]
 
                 ),secondary_y = False,
 
@@ -263,7 +270,7 @@ def plot_player_games_played(player_name):
             )
             idx_change_of_teams = i
             team_nr = team_nr + 1
-
+        counter = counter + 1
     fig.update_xaxes(title_text = "season")
     fig.update_yaxes(title_text = "games", secondary_y = False)
     fig.update_yaxes(title_text = "minutes", secondary_y = True)
@@ -290,16 +297,20 @@ def get_player_tackles(player_name):
     #fig = go.Figure()
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     teams = player_def_df['squad']
+    team_colors = {}
+    counter = 0
     team_nr = 0
     idx_change_of_teams = 0
     for i in range (1, len(teams)+1):
         if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
+            if (not(teams.iloc[counter] in list(team_colors.keys()))):
+                    team_colors[teams.iloc[counter]] =  TEAMS_COLORS[team_nr]
             fig.add_trace(
                 go.Bar(
                     name=f"all tackles for {teams.iloc[idx_change_of_teams]}",
                     x = player_def_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_def_df.iloc[idx_change_of_teams:i, :]["tackles"].tolist(),
-                    marker_color=TEAMS_COLORS[team_nr]
+                    marker_color = team_colors[teams.iloc[counter]]
                 )#,secondary_y = False,
             )
             fig.add_trace(
@@ -312,6 +323,7 @@ def get_player_tackles(player_name):
             )
             idx_change_of_teams = i
             team_nr = team_nr + 1
+        counter = counter + 1
     fig.update_xaxes(title_text = "season")
     fig.update_yaxes(title_text = "Number of Tackles")
     #fig.update_yaxes(title_text = "Number of Tackles won",secondary_y = True)
