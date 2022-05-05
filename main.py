@@ -216,6 +216,7 @@ def get_player_club_evolution(player_name):
         )
     )
     figure.update_layout(
+        showlegend=False,
         title=go.layout.Title(text=f"{player_name} all clubs from his career and played time percentage"),
         font={
                 "size": 12,
