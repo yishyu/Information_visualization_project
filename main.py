@@ -462,7 +462,7 @@ def plot_gk(player_name, category="clean sheets"):
                     team_colors[teams.iloc[counter]] =  TEAMS_COLORS[team_nr]
             fig.add_trace(
                 go.Bar(
-                    name=f"all tackles for {teams.iloc[idx_change_of_teams]}",
+                    name=f"{yaxes} for {teams.iloc[idx_change_of_teams]}",
                     x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_df.iloc[idx_change_of_teams:i, :][column].tolist(),
                     marker_color = team_colors[teams.iloc[counter]]
@@ -470,7 +470,7 @@ def plot_gk(player_name, category="clean sheets"):
             )
             fig.add_trace(
                 go.Scatter(
-                    name = f"won tackles for {teams.iloc[idx_change_of_teams]}",
+                    name = f"{yaxes2} for {teams.iloc[idx_change_of_teams]}",
                     x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_df.iloc[idx_change_of_teams:i, :][column2].tolist(),
                     marker_color="#000000"
@@ -484,7 +484,7 @@ def plot_gk(player_name, category="clean sheets"):
     fig.update_yaxes(title_text = yaxes2, secondary_y = True)
     fig.update_layout(
         barmode="overlay",
-        title=go.layout.Title(text=f"{player_name} all tackles vs won tackles"),
+        title=go.layout.Title(text=f"{player_name} {yaxes} vs {yaxes2}"),
         font={
                 "size": 12,
                 "color": "black"
