@@ -6,13 +6,13 @@ from preprocess import get_all_dataframes
 from utils import time_this
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-from PIL import Image
 import os
 import base64
 import random
+import dash_bootstrap_components as dbc
 
 
-app = Dash(__name__)
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
 
 # assume you have a "long-form" data frame
 # see https://plotly.com/python/px-arguments/ for more options
@@ -131,6 +131,7 @@ def plot_player_goals(player_name):
     )
     except:
         fig = go.Figure()
+    unify_legend(fig)
     return fig
 
 @time_this
@@ -221,7 +222,6 @@ def get_player_club_evolution(player_name):
     )
     figure.update_layout(
         showlegend=False,
-        title=go.layout.Title(text=f"{player_name} all clubs from his career and played time percentage"),
         font={
                 "size": 12,
                 "color": "black"
@@ -335,7 +335,7 @@ def get_player_tackles(player_name):
                 "color": "black"
             },
     )
-    #unify_legend(fig)
+    unify_legend(fig)
     return fig
 
 @time_this
@@ -345,31 +345,87 @@ def get_player_tackles(player_name):
 )
 def get_player_assists(player_name):
     player_id = get_id_from_name(player_name)
-    player_pass_df = all_df["passing"].loc[all_df["passing"]["id"] == player_id][["season", "passes_short", "passes_medium", "passes_long", "assists"]]
-    # player_pass_df = player_pass_df.fillna(-100)
-    figure = make_subplots(specs=[[{"secondary_y": True}]])
-    for name, values in player_pass_df.iteritems():
-        if name == "assists":
-            figure.add_trace(
-                go.Scatter(name=name, x=player_pass_df["season"], y=values), secondary_y=True
-            )
-        elif name != "season":
-            figure.add_trace(
-                go.Bar(name=name, x=player_pass_df["season"], y=values), secondary_y=False
-            )
+    player_pass_df = all_df["passing"].loc[all_df["passing"]["id"] == player_id]
 
-    figure.update_xaxes(title_text = "season")
-    figure.update_yaxes(title_text = "passes", secondary_y = False)
-    figure.update_yaxes(title_text = "assists", secondary_y = True)
-    figure.update_layout(
-        barmode="stack",
-        title=go.layout.Title(text=f"{player_name} passes stats"),
+    fig = make_subplots(specs=[[{"secondary_y": True}]])
+    teams = player_pass_df['squad']
+    team_colors = {}
+    counter = 0
+    team_nr = 0
+    idx_change_of_teams = 0
+    for i in range (1, len(teams)+1):
+        if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
+            if (not(teams.iloc[counter] in list(team_colors.keys()))):
+                    team_colors[teams.iloc[counter]] =  TEAMS_COLORS[team_nr]
+            fig.add_trace(
+                go.Bar(
+                    name=f"passes for {teams.iloc[idx_change_of_teams]}",
+                    x = player_pass_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
+                    y = player_pass_df.iloc[idx_change_of_teams:i, :]["passes"].tolist(),
+                    marker_color = team_colors[teams.iloc[counter]]
+                ),secondary_y = False,
+            )
+            successfull_passes_pct = ((player_pass_df.iloc[idx_change_of_teams:i, :]["passes_pct"])*0.01).tolist()
+            fig.add_trace(
+                go.Bar(
+                    name=f"successful for {teams.iloc[idx_change_of_teams]}",
+                    x = player_pass_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
+                    y = ((player_pass_df.iloc[idx_change_of_teams:i, :]["passes"])*successfull_passes_pct).tolist(),
+                    marker_color = "#16ff32"
+                ),secondary_y = False,
+            )
+            fig.add_trace(
+                go.Scatter(
+                    name = f"assists for {teams.iloc[idx_change_of_teams]}",
+                    x = player_pass_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
+                    y = player_pass_df.iloc[idx_change_of_teams:i, :]["assists"].tolist(),
+                    marker_color="#000000"
+                ),secondary_y = True,
+            )
+            idx_change_of_teams = i
+            team_nr = team_nr + 1
+        counter = counter + 1
+    fig.update_xaxes(title_text = "season")
+    fig.update_yaxes(title_text = "Number of passes",secondary_y = False)
+    fig.update_yaxes(title_text = "Number of assists",secondary_y = True)
+    fig.update_layout(
+        barmode="overlay",
+        title=go.layout.Title(text=f"{player_name} all tackles vs won tackles"),
         font={
                 "size": 12,
                 "color": "black"
             },
     )
-    return figure
+    unify_legend(fig)
+    return fig
+
+# def get_player_assists(player_name):
+#     player_id = get_id_from_name(player_name)
+#     player_pass_df = all_df["passing"].loc[all_df["passing"]["id"] == player_id][["season", "passes_short", "passes_medium", "passes_long", "assists"]]
+#     # player_pass_df = player_pass_df.fillna(-100)
+#     figure = make_subplots(specs=[[{"secondary_y": True}]])
+#     for name, values in player_pass_df.iteritems():
+#         if name == "assists":
+#             figure.add_trace(
+#                 go.Scatter(name=name, x=player_pass_df["season"], y=values), secondary_y=True
+#             )
+#         elif name != "season":
+#             figure.add_trace(
+#                 go.Bar(name=name, x=player_pass_df["season"], y=values), secondary_y=False
+#             )
+
+#     figure.update_xaxes(title_text = "season")
+#     figure.update_yaxes(title_text = "passes", secondary_y = False)
+#     figure.update_yaxes(title_text = "assists", secondary_y = True)
+#     figure.update_layout(
+#         barmode="stack",
+#         title=go.layout.Title(text=f"{player_name} passes stats"),
+#         font={
+#                 "size": 12,
+#                 "color": "black"
+#             },
+#     )
+#     return figure
 
 
 def plot_gk(player_name, category="clean sheets"):
@@ -393,18 +449,47 @@ def plot_gk(player_name, category="clean sheets"):
         yaxes2 = "Penalty save percentage"
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
-    fig.add_trace(
-        go.Bar(name = yaxes, x = player_df["season"], y = player_df[column]),
-        secondary_y = False,
-    )
 
-    fig.add_trace(
-        go.Scatter(name = yaxes2, x = player_df["season"], y = player_df[column2]),
-        secondary_y = True
-    )
+    teams = player_df['squad']
+    team_colors = {}
+    counter = 0
+    team_nr = 0
+    idx_change_of_teams = 0
+    for i in range (1, len(teams)+1):
+        if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
+            if (not(teams.iloc[counter] in list(team_colors.keys()))):
+                    team_colors[teams.iloc[counter]] =  TEAMS_COLORS[team_nr]
+            fig.add_trace(
+                go.Bar(
+                    name=f"{yaxes} for {teams.iloc[idx_change_of_teams]}",
+                    x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
+                    y = player_df.iloc[idx_change_of_teams:i, :][column].tolist(),
+                    marker_color = team_colors[teams.iloc[counter]]
+                ),secondary_y = False,
+            )
+            fig.add_trace(
+                go.Scatter(
+                    name = f"{yaxes2} for {teams.iloc[idx_change_of_teams]}",
+                    x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
+                    y = player_df.iloc[idx_change_of_teams:i, :][column2].tolist(),
+                    marker_color="#000000"
+                ),secondary_y = True,
+            )
+            idx_change_of_teams = i
+            team_nr = team_nr + 1
+        counter = counter + 1
     fig.update_xaxes(title_text = "season")
-    fig.update_yaxes(title_text = yaxes)
+    fig.update_yaxes(title_text = yaxes, secondary_y = False)
     fig.update_yaxes(title_text = yaxes2, secondary_y = True)
+    fig.update_layout(
+        barmode="overlay",
+        title=go.layout.Title(text=f"{player_name} {yaxes} vs {yaxes2}"),
+        font={
+                "size": 12,
+                "color": "black"
+            },
+    )
+    unify_legend(fig)
     return fig
 
 @time_this
@@ -454,6 +539,19 @@ def display_graph(graph_type):
     elif graph_type == "DEF":
         return display, display, no_display, no_display, display, display
 
+def create_card(title, graph_id, description):
+            return dbc.Card(
+                [
+                    dbc.CardBody(
+                        [
+                            html.H4(title, id=f"{title}"),
+                            dcc.Graph(id=f"{graph_id}"),
+                        ]
+                    )
+                ],
+                body=True,
+            )
+
 # modify Pages
 @app.callback(
     Output('page-content', 'children'),
@@ -499,35 +597,43 @@ def display_page(pathname):
             other_graphs = None
         else:
             gk_graphs = None
-            graph_type = dcc.RadioItems(
+            graph_type = html.Div([
+                dcc.RadioItems(
                 id="graph_type",
                 options = {
-                    'ATT': 'Attackers Graphs ',
+                    'ATT': 'Attackers Graphs',
                     'DEF': 'Defenders Graphs ',
                     'MID': 'Midfielders Graphs ',
                 },
-                value = 'ATT'
+                value = 'ATT',
+                labelStyle={'display': 'block', "margin-bottom": "1rem"},
             )
+            ])
             other_graphs = [
-                dcc.Graph(id="plot_a_player_cards_seasons"),
-                dcc.Graph(id="plot_player_games_played"),
-                dcc.Graph(id="plot_a_player_fouls_cards_seasons"),
-                dcc.Graph(id="plot_a_player_tackles"),
-                dcc.Graph(id="plot_a_player_assists"),
-                dcc.Graph(id="plot_player_goals"),
+                dbc.Row([
+                    dbc.Col([dcc.Graph(id="plot_a_player_cards_seasons")]),
+                    dbc.Col([dcc.Graph(id="plot_player_games_played")])
+                ]),
+                dbc.Row([
+                     dbc.Col([dcc.Graph(id="plot_a_player_fouls_cards_seasons")]),
+                     dbc.Col([dcc.Graph(id="plot_a_player_tackles")])
+                ]),
+                dbc.Row([
+                    dbc.Col([dcc.Graph(id="plot_a_player_assists")]),
+                    dbc.Col([dcc.Graph(id="plot_player_goals")])
+                ])            
             ]
         return html.Div(children=[
-            html.H2(children=f'Soccer Statistics : {position_text[pathname]}'),
-            # radio buttons for graph selection
-            graph_type,
+            # sidebar
             html.Div(
-                className="row",
-                children=[
+                [
+                    html.H5(f"{position_text[pathname]}", className="display-5"),
+                    html.Hr(),
                     html.Div( ## Date select dcc components
                         id='div_position_dd',
                         children=
                         [
-                            dcc.Markdown("Choose a specific field position"),
+                            html.P("Choose a specific field position"),
                             dcc.Dropdown(
                                 positions,
                                 positions[0],
@@ -537,34 +643,61 @@ def display_page(pathname):
                         ],
                     ),
                     html.Div( ## Stock select
-                    id="div_choose_player_dd",
-                    children=
-                    [
-                        dcc.Markdown("Choose a Player"),
-                        dcc.Dropdown(
-                            id='player_dropdown',
-                            placeholder="Select a player"
+                        id="div_choose_player_dd",
+                        children=
+                        [
+                            dcc.Markdown("Choose a Player"),
+                            dcc.Dropdown(
+                                id='player_dropdown',
+                                placeholder="Select a player"
+                            ),
+                        ],
+                        style={"margin-top": "1rem"}
+                    ),
+
+                    html.Div(children=[
+                        html.Span(id="height"),
+                    ], style={"margin-top": "1rem"}),
+
+                    html.Div(children=[
+                        html.Span(id="weight"),
+                    ], style={"margin-top": "1rem"}),
+
+                    dbc.Card(
+                        [
+                            dbc.CardBody(
+                                [
+                                    html.H4("Graph types"),
+                                    graph_type
+                                ]
+                            )
+                        ],
+                        style={"margin-top": "1rem"}
+                    ),
+                    html.Div([
+                         dbc.Card(
+                            [
+                                dbc.CardBody(
+                                    [
+                                        html.H4("Clubs"),
+                                         dcc.Graph(
+                                            id="plot_a_player_clubs_seasons",
+                                        ),
+                                    ]
+                                )
+                            ],
                         ),
-                    ],
-                ),
-                ]
+                    ], style={"margin-top": "1rem"})
+                ], className="sidebar"
             ),
-
-            html.Div(children=[
-                html.Span(id="height"),
-            ]),
-            html.Div(children=[
-                html.Span(id="weight"),
-            ]),
-            dcc.Graph(
-                id="plot_a_player_clubs_seasons",
-            ),
-            html.Div(children=other_graphs),
-
-        #categories: "penalties", "saves" and "clean sheets"
-            html.Div(children=gk_graphs),
-
+            html.Div([
+                html.Div(children=other_graphs),
+                #categories: "penalties", "saves" and "clean sheets"
+                html.Div(children=gk_graphs),   
+            ], className="content")
         ])
+
+
 app.title = "Soccer Statistics"
 app.layout = html.Div([
     # represents the browser address bar and doesn't render anything

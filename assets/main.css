@@ -59,20 +59,6 @@ html{
     border-radius: 50%;
     margin-left:-5%;
     margin-right:2.4%
-
-
-}
-
-#div_position_dd {
-    display: inline-block;
-    width: 20%;
-    margin-left: 20px;
-    vertical-align: top;
-}
-
-#div_choose_player_dd {
-    display: inline-block;
-    width: 15%;
 }
 
 /* heading */
@@ -104,4 +90,21 @@ html{
 
 .no-display{
     display:none;
+}
+
+/* sidebar */
+.sidebar {
+    position: fixed;
+    top: 160px;
+    left: 0;
+    bottom: 0;
+    width: 23rem;
+    padding: 2rem 1rem;
+    background-color: #f8f9fa;
+}
+
+.content {
+    margin-left: 25rem;
+    margin-right: 2rem;
+    padding: 2rem 1rem;
 }
