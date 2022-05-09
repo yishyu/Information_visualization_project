@@ -25,7 +25,7 @@ html{
 
 .rectangleBtn {
     width:10%;
-    height:52%;
+    height:42%;
     margin: 2%;
     border:none;
 
@@ -69,6 +69,15 @@ html{
     font-family: sans-serif;
 }
 
+.second_header{
+    background-color: #222222;
+    min-height: 20%;
+    margin-left:15%;
+    padding-top: 16px;
+    padding-bottom:16px;
+    font-family: sans-serif;
+}
+
 .header-title {
     color: #FFFFFF;
     font-size: 40px;
@@ -92,19 +101,21 @@ html{
     display:none;
 }
 
+
 /* sidebar */
 .sidebar {
     position: fixed;
-    top: 160px;
     left: 0;
+    top: 0;
     bottom: 0;
-    width: 23rem;
+    width: 15%;
     padding: 2rem 1rem;
     background-color: #f8f9fa;
+    font-size:15px;
 }
 
 .content {
-    margin-left: 25rem;
+    margin-left: 20rem;
     margin-right: 2rem;
     padding: 2rem 1rem;
 }

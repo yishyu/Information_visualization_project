@@ -12,7 +12,7 @@ import random
 import dash_bootstrap_components as dbc
 
 
-app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTSTRAP])
 
 # assume you have a "long-form" data frame
 # see https://plotly.com/python/px-arguments/ for more options
@@ -111,12 +111,12 @@ def plot_player_goals(player_name):
                     go.Scatter(
                         x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                         y = player_df.iloc[idx_change_of_teams:i, :]["goals_per_shot_on_target"].tolist(),
-                        name = f"Scoring percentage on attempts on goal for {teams.iloc[idx_change_of_teams]}",
+                        name = f"Scoring percentage for {teams.iloc[idx_change_of_teams]}",
                         marker_color="#000000"
                         ),
                         secondary_y = True,
                 )
-                idx_change_of_teams = i 
+                idx_change_of_teams = i
                 team_nr = team_nr + 1
             counter = counter + 1
         fig.update_xaxes(title_text = "season")
@@ -211,21 +211,24 @@ def get_player_club_evolution(player_name):
     player_misc_df = all_df["misc"].loc[all_df["misc"]["id"] == player_id]
     figure = go.Figure()
     unique_teams = np.unique(player_misc_df["squad"], return_counts = True)
-    teams = player_misc_df["squad"] 
+    teams = player_misc_df["squad"]
     figure.add_trace(
         go.Pie(
-            labels=unique_teams[0], 
+            labels=unique_teams[0],
             values=unique_teams[1],
-            textinfo='label+percent', 
+            textinfo='label+percent',
             marker=dict(colors=[TEAMS_COLORS[i] for i in range(0, len(unique_teams[0]))])
         )
     )
     figure.update_layout(
+        paper_bgcolor='#f8f9fa',
         showlegend=False,
+        height=300,
         font={
                 "size": 12,
                 "color": "black"
             },
+        margin=dict(t=0, b=0, l=10, r=10)
     )
     return figure
 
@@ -390,7 +393,7 @@ def get_player_assists(player_name):
     fig.update_yaxes(title_text = "Number of assists",secondary_y = True)
     fig.update_layout(
         barmode="overlay",
-        title=go.layout.Title(text=f"{player_name} all tackles vs won tackles"),
+        title=go.layout.Title(text=f"{player_name} successful passes vs assists"),
         font={
                 "size": 12,
                 "color": "black"
@@ -519,38 +522,28 @@ def plot_penalties(player_name):
     return plot_gk(player_name, 'penalties')
 
 @app.callback(
-    Output('plot_a_player_fouls_cards_seasons', 'style'),
-    Output('plot_a_player_tackles', 'style'),
+    # Output('plot_a_player_fouls_cards_seasons', 'style'),
+    # Output('plot_a_player_tackles', 'style'),
 
-    Output('plot_player_goals', 'style'),
-    Output('plot_a_player_assists', 'style'),
-    Output('plot_a_player_cards_seasons', 'style'),
-    Output('plot_player_games_played', 'style'),
+
+
+    Output('info_graphs', 'style'),
+    Output('striker_graphs', 'style'),
+    Output('defender_graphs', 'style'),
+    #Output('plot_a_player_cards_seasons', 'style'),
+
+
     Input('graph_type', 'value'),
 )
 def display_graph(graph_type):
     no_display = {"display": "none"}
-    display = {"display": "block"}
+    display = {"display": "flex"}
     # plot_player_games_played, plot_a_player_cards_seasons, plot_a_player_assists, plot_player_goals, plot_a_player_tackles, plot_a_player_fouls_cards_seasons
     if graph_type == "ATT":
-        return display, display, display, display, no_display, no_display
-    elif graph_type == "MID":
-        return display, display, display, no_display, display, no_display
+        return  display, display, no_display
     elif graph_type == "DEF":
-        return display, display, no_display, no_display, display, display
+        return  display, no_display, display
 
-def create_card(title, graph_id, description):
-            return dbc.Card(
-                [
-                    dbc.CardBody(
-                        [
-                            html.H4(title, id=f"{title}"),
-                            dcc.Graph(id=f"{graph_id}"),
-                        ]
-                    )
-                ],
-                body=True,
-            )
 
 # modify Pages
 @app.callback(
@@ -562,7 +555,11 @@ def display_page(pathname):
         image_filename = "assets/soccerfield.png"
         soccerfield = base64.b64encode(open(image_filename, 'rb').read())
         return html.Div(children=[
-            html.H2(id="select_position_title", children='Select the position you are looking for'),
+            html.Div([  dcc.Link(html.H1(children='Soccer Statistics', className="header-title"), className="link", href="/"),
+            html.H3(children="This website contains statistics about ~3000 (ex)players in the 5 best leagues in Europe.", className="header-description"),
+            html.H3(children="(Spain, Belgium, Germany, France & Italy)", className="header-description"),
+            ], className="header"),
+            html.H3(id="select_position_title", children='Select the position you are looking for'),
             html.Div(
                 children=[
                     html.Img(src=f'data:image/png;base64,{soccerfield.decode()}', style={"width": "60%", "margin": "auto", "display": "block"}),
@@ -589,45 +586,71 @@ def display_page(pathname):
         positions = np.array(positions)
         if position_shortcut == "G":  # the goalkeeper has very specific stats
             gk_graphs = [
-                dcc.Graph (id="plot_clean_sheets"),
-                dcc.Graph (id="plot_penalties"),
-                dcc.Graph (id="plot_saves")
+                dcc.Graph (id="plot_clean_sheets", config={'displayModeBar': False}),
+                dcc.Graph (id="plot_penalties", config={'displayModeBar': False}),
+                dcc.Graph (id="plot_saves", config={'displayModeBar': False})
             ]
             graph_type = None
             other_graphs = None
         else:
+            values = {"/midfielder": "ATT", "/defender": "DEF", "/striker": "ATT"}
             gk_graphs = None
-            graph_type = html.Div([
-                dcc.RadioItems(
-                id="graph_type",
-                options = {
-                    'ATT': 'Attackers Graphs',
-                    'DEF': 'Defenders Graphs ',
-                    'MID': 'Midfielders Graphs ',
-                },
-                value = 'ATT',
-                labelStyle={'display': 'block', "margin-bottom": "1rem"},
-            )
-            ])
+
+
+            graph_type = dbc.Card(
+                        [
+                            dbc.CardBody(
+                                [
+                                    html.H4("Graph types"),
+                                    html.Div([
+                                        dcc.RadioItems(
+                                        id="graph_type",
+                                        options = {
+                                            'ATT': ' Offensive Stats',
+                                            'DEF': ' Defensive Stats ',
+                                        },
+                                        value = values[pathname],
+                                        labelStyle={'display': 'block', "margin-bottom": "1rem"},
+                                    )
+                                    ])
+                                ]
+                            )
+                        ],
+                        style={"margin-top": "1rem", "margin-bottom": "5%"}
+                    )
             other_graphs = [
-                dbc.Row([
-                    dbc.Col([dcc.Graph(id="plot_a_player_cards_seasons")]),
-                    dbc.Col([dcc.Graph(id="plot_player_games_played")])
+                dbc.Row(
+                    id="info_graphs",
+                    children=[
+                    dbc.Col([dcc.Graph(id="plot_a_player_cards_seasons", config={'displayModeBar': False})], width=6),
+                    dbc.Col([dcc.Graph(id="plot_player_games_played", config={'displayModeBar': False})], width=6)
                 ]),
-                dbc.Row([
-                     dbc.Col([dcc.Graph(id="plot_a_player_fouls_cards_seasons")]),
-                     dbc.Col([dcc.Graph(id="plot_a_player_tackles")])
+                dbc.Row(
+                    id="defender_graphs",
+                    children=[
+                     dbc.Col([dcc.Graph(id="plot_a_player_fouls_cards_seasons", config={'displayModeBar': False})], width=6),
+                     dbc.Col([dcc.Graph(id="plot_a_player_tackles", config={'displayModeBar': False})], width=6)
                 ]),
-                dbc.Row([
-                    dbc.Col([dcc.Graph(id="plot_a_player_assists")]),
-                    dbc.Col([dcc.Graph(id="plot_player_goals")])
-                ])            
+                dbc.Row(
+                    id="striker_graphs",
+                    children=[
+                    dbc.Col([dcc.Graph(id="plot_a_player_assists", config={'displayModeBar': False})], width=6),
+                    dbc.Col([dcc.Graph(id="plot_player_goals", config={'displayModeBar': False})], width=6)
+                ])
             ]
         return html.Div(children=[
+            html.Div([
+
+                dcc.Link(
+                    [
+                        html.I(className="bi bi-house-door-fill fa-8x", style={"margin-left":"2%", "font-size": "30px", "color":"white"}),
+                        html.H1(children='Soccer Statistics', className="header-title")
+                    ], className="link d-flex align-items-center", href="/")
+            ], className="second_header"),
             # sidebar
             html.Div(
                 [
-                    html.H5(f"{position_text[pathname]}", className="display-5"),
+                    html.H3(f"{position_text[pathname]}"),
                     html.Hr(),
                     html.Div( ## Date select dcc components
                         id='div_position_dd',
@@ -663,37 +686,24 @@ def display_page(pathname):
                         html.Span(id="weight"),
                     ], style={"margin-top": "1rem"}),
 
-                    dbc.Card(
+                    graph_type,
+                    html.Div(
                         [
-                            dbc.CardBody(
-                                [
-                                    html.H4("Graph types"),
-                                    graph_type
-                                ]
-                            )
-                        ],
-                        style={"margin-top": "1rem"}
+                            html.H5(f"Clubs"),
+                            dcc.Graph(
+                                id="plot_a_player_clubs_seasons",
+
+                                config={'displayModeBar': False}
+                            ),
+                        ], style={"position": "fixed", "bottom":"0", "width":"14%",}
                     ),
-                    html.Div([
-                         dbc.Card(
-                            [
-                                dbc.CardBody(
-                                    [
-                                        html.H4("Clubs"),
-                                         dcc.Graph(
-                                            id="plot_a_player_clubs_seasons",
-                                        ),
-                                    ]
-                                )
-                            ],
-                        ),
-                    ], style={"margin-top": "1rem"})
+
                 ], className="sidebar"
             ),
             html.Div([
                 html.Div(children=other_graphs),
                 #categories: "penalties", "saves" and "clean sheets"
-                html.Div(children=gk_graphs),   
+                html.Div(children=gk_graphs),
             ], className="content")
         ])
 
@@ -704,10 +714,7 @@ app.layout = html.Div([
     dcc.Location(id='url', refresh=False),
 
     # content will be rendered in this element
-    html.Div([  dcc.Link(html.H1(children='Soccer Statistics', className="header-title"), className="link", href="/"),
-                html.H3(children="This website contains statistics about ~3000 (ex)players in the 5 best leagues in Europe.", className="header-description"),
-                html.H3(children="(Spain, Belgium, Germany, France & Italy)", className="header-description"),
-                ], className="header"),
+
     html.Div(id='page-content'),
 ])
 
@@ -716,4 +723,4 @@ if __name__ == '__main__':
     # for name, df in all_df.items():
     #     if name != 'info':
     #         generate_color(df["squad"])
-    app.run_server(debug=True, threaded=True)
+    app.run_server(debug=False, threaded=True)
