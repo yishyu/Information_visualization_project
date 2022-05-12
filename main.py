@@ -34,6 +34,7 @@ TEAMS_COLORS = [
 ]
 
 
+
 def unify_legend(fig):
     # https://stackoverflow.com/questions/26939121/how-to-avoid-duplicate-legend-labels-in-plotly-or-pass-custom-legend-labels
     names = set()
@@ -78,6 +79,14 @@ def get_name_from_id(player_id):
         raise ValueError(f"{player_id} is not a valid player")
     return player_row.iloc[0]["name"]
 
+def get_team_colors(teams):
+    team_colors = {}
+    cnt = 0
+    for team in teams: 
+            if (not (team in list(team_colors.keys()))):
+                    team_colors[team] =  TEAMS_COLORS[cnt]
+                    cnt += 1
+    return team_colors
 
 @time_this
 @app.callback(
@@ -90,20 +99,18 @@ def plot_player_goals(player_name):
         player_df = all_df["shooting"].loc[all_df["shooting"]["id"] == player_id]
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         teams = player_df['squad']
-        team_colors = {}
-        counter = 0
-        team_nr = 0
+        teams_unique = np.unique(player_df['squad'])
+        team_colors = get_team_colors(teams_unique)
         idx_change_of_teams = 0
+
         for i in range (1, len(teams)+1):
-            if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
-                if (not(teams.iloc[counter] in list(team_colors.keys()))):
-                    team_colors[teams.iloc[counter]] =  TEAMS_COLORS[team_nr]
+            if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:                
                 fig.add_trace(
                     go.Bar(
                         name = f"Goals for {teams.iloc[idx_change_of_teams]}",
                         x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                         y = player_df.iloc[idx_change_of_teams:i, :]["goals"].tolist(),
-                        marker_color = team_colors[teams.iloc[counter]]
+                        marker_color = team_colors[teams.iloc[i-1]]
                         ),
                         secondary_y = False,
                 )
@@ -117,8 +124,6 @@ def plot_player_goals(player_name):
                         secondary_y = True,
                 )
                 idx_change_of_teams = i
-                team_nr = team_nr + 1
-            counter = counter + 1
         fig.update_xaxes(title_text = "season")
         fig.update_yaxes(title_text = "goals", secondary_y = False)
         fig.update_yaxes(title_text = "percentage", secondary_y = True)
@@ -243,20 +248,17 @@ def plot_player_games_played(player_name):
     player_df = all_df["playing_time"].loc[all_df["playing_time"]["id"] == player_id].sort_values('season')
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     teams = player_df['squad']
-    team_colors = {}
-    counter = 0
-    team_nr = 0
+    teams_unique = np.unique(player_df['squad'])
+    team_colors = get_team_colors(teams_unique)
     idx_change_of_teams = 0
     for i in range (1, len(teams)+1):
         if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
-            if (not(teams.iloc[counter] in list(team_colors.keys()))):
-                    team_colors[teams.iloc[counter]] =  TEAMS_COLORS[team_nr]
             fig.add_trace(
                 go.Bar(
                     name = f"Games played for {teams.iloc[idx_change_of_teams]}",
                     x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_df.iloc[idx_change_of_teams:i, :]["games"].tolist(),
-                    marker_color = team_colors[teams.iloc[counter]]
+                    marker_color = team_colors[teams.iloc[i-1]]
 
                 ),secondary_y = False,
 
@@ -273,8 +275,6 @@ def plot_player_games_played(player_name):
 
             )
             idx_change_of_teams = i
-            team_nr = team_nr + 1
-        counter = counter + 1
     fig.update_xaxes(title_text = "season")
     fig.update_yaxes(title_text = "games", secondary_y = False)
     fig.update_yaxes(title_text = "minutes", secondary_y = True)
@@ -301,20 +301,17 @@ def get_player_tackles(player_name):
     #fig = go.Figure()
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     teams = player_def_df['squad']
-    team_colors = {}
-    counter = 0
-    team_nr = 0
+    teams_unique = np.unique(player_def_df['squad'])
+    team_colors = get_team_colors(teams_unique)
     idx_change_of_teams = 0
     for i in range (1, len(teams)+1):
         if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
-            if (not(teams.iloc[counter] in list(team_colors.keys()))):
-                    team_colors[teams.iloc[counter]] =  TEAMS_COLORS[team_nr]
             fig.add_trace(
                 go.Bar(
                     name=f"All tackles for {teams.iloc[idx_change_of_teams]}",
                     x = player_def_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_def_df.iloc[idx_change_of_teams:i, :]["tackles"].tolist(),
-                    marker_color = team_colors[teams.iloc[counter]]
+                    marker_color = team_colors[teams.iloc[i-1]]
                 )#,secondary_y = False,
             )
             fig.add_trace(
@@ -326,8 +323,6 @@ def get_player_tackles(player_name):
                 )#,secondary_y = True,
             )
             idx_change_of_teams = i
-            team_nr = team_nr + 1
-        counter = counter + 1
     fig.update_xaxes(title_text = "season")
     fig.update_yaxes(title_text = "Number of Tackles")
     #fig.update_yaxes(title_text = "Number of Tackles won",secondary_y = True)
@@ -353,20 +348,17 @@ def get_player_assists(player_name):
 
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     teams = player_pass_df['squad']
-    team_colors = {}
-    counter = 0
-    team_nr = 0
+    teams_unique = np.unique(player_pass_df['squad'])
+    team_colors = get_team_colors(teams_unique)
     idx_change_of_teams = 0
     for i in range (1, len(teams)+1):
         if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
-            if (not(teams.iloc[counter] in list(team_colors.keys()))):
-                    team_colors[teams.iloc[counter]] =  TEAMS_COLORS[team_nr]
             fig.add_trace(
                 go.Bar(
                     name=f"Passes for {teams.iloc[idx_change_of_teams]}",
                     x = player_pass_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_pass_df.iloc[idx_change_of_teams:i, :]["passes"].tolist(),
-                    marker_color = team_colors[teams.iloc[counter]]
+                    marker_color = team_colors[teams.iloc[i-1]]
                 ),secondary_y = False,
             )
             successfull_passes_pct = ((player_pass_df.iloc[idx_change_of_teams:i, :]["passes_pct"])*0.01).tolist()
@@ -387,8 +379,6 @@ def get_player_assists(player_name):
                 ),secondary_y = True,
             )
             idx_change_of_teams = i
-            team_nr = team_nr + 1
-        counter = counter + 1
     fig.update_xaxes(title_text = "season")
     fig.update_yaxes(title_text = "Number of passes",secondary_y = False)
     fig.update_yaxes(title_text = "Number of assists",secondary_y = True)
@@ -455,20 +445,17 @@ def plot_gk(player_name, category="clean sheets"):
     fig = make_subplots(specs=[[{"secondary_y": True}]])
 
     teams = player_df['squad']
-    team_colors = {}
-    counter = 0
-    team_nr = 0
+    teams_unique = np.unique(player_df['squad'])
+    team_colors = get_team_colors(teams_unique)
     idx_change_of_teams = 0
     for i in range (1, len(teams)+1):
         if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
-            if (not(teams.iloc[counter] in list(team_colors.keys()))):
-                    team_colors[teams.iloc[counter]] =  TEAMS_COLORS[team_nr]
             fig.add_trace(
                 go.Bar(
                     name=f"{yaxes} for {teams.iloc[idx_change_of_teams]}",
                     x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_df.iloc[idx_change_of_teams:i, :][column].tolist(),
-                    marker_color = team_colors[teams.iloc[counter]]
+                    marker_color = team_colors[teams.iloc[i-1]]
                 ),secondary_y = False,
             )
             fig.add_trace(
@@ -480,8 +467,6 @@ def plot_gk(player_name, category="clean sheets"):
                 ),secondary_y = True,
             )
             idx_change_of_teams = i
-            team_nr = team_nr + 1
-        counter = counter + 1
     fig.update_xaxes(title_text = "season")
     fig.update_yaxes(title_text = yaxes, secondary_y = False)
     fig.update_yaxes(title_text = yaxes2, secondary_y = True)
@@ -724,4 +709,4 @@ if __name__ == '__main__':
     # for name, df in all_df.items():
     #     if name != 'info':
     #         generate_color(df["squad"])
-    app.run_server(debug=False, threaded=True)
+    app.run_server(debug=True, threaded=True)
