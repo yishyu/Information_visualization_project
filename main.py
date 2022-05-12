@@ -403,34 +403,6 @@ def get_player_assists(player_name):
     unify_legend(fig)
     return fig
 
-# def get_player_assists(player_name):
-#     player_id = get_id_from_name(player_name)
-#     player_pass_df = all_df["passing"].loc[all_df["passing"]["id"] == player_id][["season", "passes_short", "passes_medium", "passes_long", "assists"]]
-#     # player_pass_df = player_pass_df.fillna(-100)
-#     figure = make_subplots(specs=[[{"secondary_y": True}]])
-#     for name, values in player_pass_df.iteritems():
-#         if name == "assists":
-#             figure.add_trace(
-#                 go.Scatter(name=name, x=player_pass_df["season"], y=values), secondary_y=True
-#             )
-#         elif name != "season":
-#             figure.add_trace(
-#                 go.Bar(name=name, x=player_pass_df["season"], y=values), secondary_y=False
-#             )
-
-#     figure.update_xaxes(title_text = "season")
-#     figure.update_yaxes(title_text = "passes", secondary_y = False)
-#     figure.update_yaxes(title_text = "assists", secondary_y = True)
-#     figure.update_layout(
-#         barmode="stack",
-#         title=go.layout.Title(text=f"{player_name} passes stats"),
-#         font={
-#                 "size": 12,
-#                 "color": "black"
-#             },
-#     )
-#     return figure
-
 
 def plot_gk(player_name, category="clean sheets"):
     player_id = get_id_from_name(player_name)
