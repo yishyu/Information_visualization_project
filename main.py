@@ -100,7 +100,7 @@ def plot_player_goals(player_name):
                     team_colors[teams.iloc[counter]] =  TEAMS_COLORS[team_nr]
                 fig.add_trace(
                     go.Bar(
-                        name = f"Actual goals for {teams.iloc[idx_change_of_teams]}",
+                        name = f"Goals for {teams.iloc[idx_change_of_teams]}",
                         x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                         y = player_df.iloc[idx_change_of_teams:i, :]["goals"].tolist(),
                         marker_color = team_colors[teams.iloc[counter]]
@@ -111,7 +111,7 @@ def plot_player_goals(player_name):
                     go.Scatter(
                         x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                         y = player_df.iloc[idx_change_of_teams:i, :]["goals_per_shot_on_target"].tolist(),
-                        name = f"Scoring percentage for {teams.iloc[idx_change_of_teams]}",
+                        name = f"Scoring % for {teams.iloc[idx_change_of_teams]}",
                         marker_color="#000000"
                         ),
                         secondary_y = True,
@@ -151,7 +151,7 @@ def plot_a_player_cards_seasons(player_name):
         ],
         layout=go.Layout(
             barmode="group",
-            title=go.layout.Title(text=f"Every cards gotten by {player_name} throughout the seasons"),
+            title=go.layout.Title(text=f"All cards gotten by {player_name} throughout the seasons"),
             xaxis_title="Seasons",
             yaxis_title="Amount of Cards",
             font={
@@ -173,7 +173,7 @@ def plot_a_player_fouls_cards_seasons(player_name):
     button_layer_1_height = 1.08
     return go.Figure(
         data=[
-            go.Scatter(name='Cards Got', x=player_misc_df["season"].unique(), y=player_misc_df["cards"], marker=dict(color="Orange")),
+            go.Scatter(name='Cards gotten', x=player_misc_df["season"].unique(), y=player_misc_df["cards"], marker=dict(color="Orange")),
             go.Scatter(name='Number of Fouls', x=player_misc_df["season"].unique(), y=player_misc_df["fouls"], marker=dict(color="#008000")),
         ],
         layout=go.Layout(
@@ -254,8 +254,8 @@ def plot_player_games_played(player_name):
             fig.add_trace(
                 go.Bar(
                     name = f"Games played for {teams.iloc[idx_change_of_teams]}",
-                    x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(), # [player_df['season'][j] for j in range(idx_change_of_teams,i)],
-                    y = player_df.iloc[idx_change_of_teams:i, :]["games"].tolist(), # [player_df['games'][j] for j in range(idx_change_of_teams,i)]),
+                    x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
+                    y = player_df.iloc[idx_change_of_teams:i, :]["games"].tolist(),
                     marker_color = team_colors[teams.iloc[counter]]
 
                 ),secondary_y = False,
@@ -263,9 +263,10 @@ def plot_player_games_played(player_name):
             )
             fig.add_trace(
                 go.Scatter(
-                    name = f"Minutes per game for {teams.iloc[idx_change_of_teams]}",
-                    x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(), # [player_df['season'][j] for j in range(idx_change_of_teams,i)],
-                    y = player_df.iloc[idx_change_of_teams:i, :]["minutes_per_game"].tolist(), # [player_df['games'][j] for j in range(idx_change_of_teams,i)]),
+                    name = f"Minutes/game for {teams.iloc[idx_change_of_teams]}",
+                    #textfont = 9,
+                    x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(), 
+                    y = player_df.iloc[idx_change_of_teams:i, :]["minutes_per_game"].tolist(),
                     marker_color="#000000"
 
                 ),secondary_y = True,
@@ -310,7 +311,7 @@ def get_player_tackles(player_name):
                     team_colors[teams.iloc[counter]] =  TEAMS_COLORS[team_nr]
             fig.add_trace(
                 go.Bar(
-                    name=f"all tackles for {teams.iloc[idx_change_of_teams]}",
+                    name=f"All tackles for {teams.iloc[idx_change_of_teams]}",
                     x = player_def_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_def_df.iloc[idx_change_of_teams:i, :]["tackles"].tolist(),
                     marker_color = team_colors[teams.iloc[counter]]
@@ -318,7 +319,7 @@ def get_player_tackles(player_name):
             )
             fig.add_trace(
                 go.Scatter(
-                    name = f"won tackles for {teams.iloc[idx_change_of_teams]}",
+                    name = f"Won tackles for {teams.iloc[idx_change_of_teams]}",
                     x = player_def_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_def_df.iloc[idx_change_of_teams:i, :]["tackles_won"].tolist(),
                     marker_color="#000000"
@@ -362,7 +363,7 @@ def get_player_assists(player_name):
                     team_colors[teams.iloc[counter]] =  TEAMS_COLORS[team_nr]
             fig.add_trace(
                 go.Bar(
-                    name=f"passes for {teams.iloc[idx_change_of_teams]}",
+                    name=f"Passes for {teams.iloc[idx_change_of_teams]}",
                     x = player_pass_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_pass_df.iloc[idx_change_of_teams:i, :]["passes"].tolist(),
                     marker_color = team_colors[teams.iloc[counter]]
@@ -371,7 +372,7 @@ def get_player_assists(player_name):
             successfull_passes_pct = ((player_pass_df.iloc[idx_change_of_teams:i, :]["passes_pct"])*0.01).tolist()
             fig.add_trace(
                 go.Bar(
-                    name=f"successful for {teams.iloc[idx_change_of_teams]}",
+                    name=f"Successful passes for {teams.iloc[idx_change_of_teams]}",
                     x = player_pass_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = ((player_pass_df.iloc[idx_change_of_teams:i, :]["passes"])*successfull_passes_pct).tolist(),
                     marker_color = "#16ff32"
