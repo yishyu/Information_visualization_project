@@ -123,6 +123,7 @@ def plot_player_goals(player_name):
         fig.update_yaxes(title_text = "goals", secondary_y = False)
         fig.update_yaxes(title_text = "percentage", secondary_y = True)
         fig.update_layout(
+        paper_bgcolor='#f8f9fa',
         title=go.layout.Title(text=f"{player_name} scored goals vs scoring percentage"),
         font={
                 "size": 12,
@@ -154,6 +155,7 @@ def plot_a_player_cards_seasons(player_name):
             title=go.layout.Title(text=f"All cards gotten by {player_name} throughout the seasons"),
             xaxis_title="Seasons",
             yaxis_title="Amount of Cards",
+            paper_bgcolor='#f8f9fa',
             font={
                 "size": 12,
                 "color": "black"
@@ -177,8 +179,9 @@ def plot_a_player_fouls_cards_seasons(player_name):
             go.Scatter(name='Number of Fouls', x=player_misc_df["season"].unique(), y=player_misc_df["fouls"], marker=dict(color="#008000")),
         ],
         layout=go.Layout(
+            paper_bgcolor='#f8f9fa',
             barmode="group",
-            title=go.layout.Title(text=f"Comparison between the amount of faults and the number of cards gotten by {player_name} throughout the seasons"),
+            title=go.layout.Title(text=f" Comparison between the amount of faults and <br> the number of cards gotten by {player_name} throughout the seasons"),
             xaxis_title="Seasons",
             yaxis_title="Unity",
             font={
@@ -279,6 +282,7 @@ def plot_player_games_played(player_name):
     fig.update_yaxes(title_text = "games", secondary_y = False)
     fig.update_yaxes(title_text = "minutes", secondary_y = True)
     fig.update_layout(
+        paper_bgcolor='#f8f9fa',
         barmode="overlay",
         title=go.layout.Title(text=f"{player_name} games played vs minutes per game"),
         font={
@@ -332,6 +336,7 @@ def get_player_tackles(player_name):
     fig.update_yaxes(title_text = "Number of Tackles")
     #fig.update_yaxes(title_text = "Number of Tackles won",secondary_y = True)
     fig.update_layout(
+        paper_bgcolor='#f8f9fa',
         barmode="overlay",
         title=go.layout.Title(text=f"{player_name} all tackles vs won tackles"),
         font={
@@ -393,6 +398,7 @@ def get_player_assists(player_name):
     fig.update_yaxes(title_text = "Number of passes",secondary_y = False)
     fig.update_yaxes(title_text = "Number of assists",secondary_y = True)
     fig.update_layout(
+        paper_bgcolor='#f8f9fa',
         barmode="overlay",
         title=go.layout.Title(text=f"{player_name} successful passes vs assists"),
         font={
@@ -458,6 +464,7 @@ def plot_gk(player_name, category="clean sheets"):
     fig.update_yaxes(title_text = yaxes, secondary_y = False)
     fig.update_yaxes(title_text = yaxes2, secondary_y = True)
     fig.update_layout(
+        paper_bgcolor='#f8f9fa',
         barmode="overlay",
         title=go.layout.Title(text=f"{player_name} {yaxes} vs {yaxes2}"),
         font={
@@ -518,6 +525,14 @@ def display_graph(graph_type):
         return  display, no_display, display
 
 
+def create_card(title, graph_id):
+    return dbc.Card([
+        dbc.CardBody([
+            html.H4(f"{title}"),
+            dcc.Graph(id=f"{graph_id}", config={'displayModeBar': False})
+        ])
+    ], className="mb-4", style={"background-color":"#f8f9fa"})
+
 # modify Pages
 @app.callback(
     Output('page-content', 'children'),
@@ -560,11 +575,11 @@ def display_page(pathname):
         if position_shortcut == "G":  # the goalkeeper has very specific stats
             gk_graphs = [
                 dbc.Row([
-                    dbc.Col([dcc.Graph (id="plot_clean_sheets", config={'displayModeBar': False})], width=6),
-                    dbc.Col([dcc.Graph (id="plot_penalties", config={'displayModeBar': False})], width=6)
+                    dbc.Col([create_card("Clean Sheets", "plot_clean_sheets")], width=6),
+                    dbc.Col([create_card("Penalties", "plot_penalties")], width=6)
                 ]),
                 dbc.Row([
-                    dbc.Col([dcc.Graph (id="plot_saves", config={'displayModeBar': False})], width=12)
+                    dbc.Col([create_card("Saves", "plot_saves")], width=12)
                 ])
             ]
             graph_type = None
@@ -599,20 +614,20 @@ def display_page(pathname):
                 dbc.Row(
                     id="info_graphs",
                     children=[
-                    dbc.Col([dcc.Graph(id="plot_a_player_cards_seasons", config={'displayModeBar': False})], width=6),
-                    dbc.Col([dcc.Graph(id="plot_player_games_played", config={'displayModeBar': False})], width=6)
+                    dbc.Col([create_card("Cards", "plot_a_player_cards_seasons")], width=6),
+                    dbc.Col([create_card("Games played", "plot_player_games_played")], width = 6),                        
                 ]),
                 dbc.Row(
                     id="defender_graphs",
                     children=[
-                     dbc.Col([dcc.Graph(id="plot_a_player_fouls_cards_seasons", config={'displayModeBar': False})], width=6),
-                     dbc.Col([dcc.Graph(id="plot_a_player_tackles", config={'displayModeBar': False})], width=6)
+                     dbc.Col([create_card("Fouls", "plot_a_player_fouls_cards_seasons")], width=6),
+                     dbc.Col([create_card("Tackles", "plot_a_player_tackles")], width=6)
                 ]),
                 dbc.Row(
                     id="striker_graphs",
                     children=[
-                    dbc.Col([dcc.Graph(id="plot_a_player_assists", config={'displayModeBar': False})], width=6),
-                    dbc.Col([dcc.Graph(id="plot_player_goals", config={'displayModeBar': False})], width=6)
+                    dbc.Col([create_card("Assists", "plot_a_player_assists")], width=6),
+                    dbc.Col([create_card("Goals", "plot_player_goals")], width=6)
                 ])
             ]
         return html.Div(children=[
@@ -669,8 +684,7 @@ def display_page(pathname):
                             html.H5(f"Clubs"),
                             dcc.Graph(
                                 id="plot_a_player_clubs_seasons",
-
-                                config={'displayModeBar': False}
+                                config={'displayModeBar': False},
                             ),
                         ], style={"position": "fixed", "bottom":"0", "width":"14%",}
                     ),
