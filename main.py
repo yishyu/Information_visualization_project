@@ -587,9 +587,13 @@ def display_page(pathname):
         positions = np.array(positions)
         if position_shortcut == "G":  # the goalkeeper has very specific stats
             gk_graphs = [
-                dcc.Graph (id="plot_clean_sheets", config={'displayModeBar': False}),
-                dcc.Graph (id="plot_penalties", config={'displayModeBar': False}),
-                dcc.Graph (id="plot_saves", config={'displayModeBar': False})
+                dbc.Row([
+                    dbc.Col([dcc.Graph (id="plot_clean_sheets", config={'displayModeBar': False})], width=6),
+                    dbc.Col([dcc.Graph (id="plot_penalties", config={'displayModeBar': False})], width=6)
+                ]),
+                dbc.Row([
+                    dbc.Col([dcc.Graph (id="plot_saves", config={'displayModeBar': False})], width=12)
+                ])
             ]
             graph_type = None
             other_graphs = None
