@@ -54,9 +54,9 @@ def unify_legend(fig):
 def update_dropdowns(position, all_positions):
     if position == "All":
         all_positions.remove(position)
-        players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["position"].isin(all_positions)].unique()
+        players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["general_position"].isin(all_positions)].unique()
     else:
-        players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["position"] == position].unique()
+        players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["general_position"] == position].unique()
     player = players[0]
     return player, players
 
@@ -128,6 +128,7 @@ def plot_player_goals(player_name):
         fig.update_yaxes(title_text = "goals", secondary_y = False)
         fig.update_yaxes(title_text = "percentage", secondary_y = True)
         fig.update_layout(
+        paper_bgcolor='#f8f9fa',
         title=go.layout.Title(text=f"{player_name} scored goals vs scoring percentage"),
         font={
                 "size": 12,
@@ -159,6 +160,7 @@ def plot_a_player_cards_seasons(player_name):
             title=go.layout.Title(text=f"All cards gotten by {player_name} throughout the seasons"),
             xaxis_title="Seasons",
             yaxis_title="Amount of Cards",
+            paper_bgcolor='#f8f9fa',
             font={
                 "size": 12,
                 "color": "black"
@@ -182,8 +184,9 @@ def plot_a_player_fouls_cards_seasons(player_name):
             go.Scatter(name='Number of Fouls', x=player_misc_df["season"].unique(), y=player_misc_df["fouls"], marker=dict(color="#008000")),
         ],
         layout=go.Layout(
+            paper_bgcolor='#f8f9fa',
             barmode="group",
-            title=go.layout.Title(text=f"Comparison between the amount of faults and the number of cards gotten by {player_name} throughout the seasons"),
+            title=go.layout.Title(text=f" Comparison between the amount of faults and <br> the number of cards gotten by {player_name} throughout the seasons"),
             xaxis_title="Seasons",
             yaxis_title="Unity",
             font={
@@ -198,13 +201,15 @@ def plot_a_player_fouls_cards_seasons(player_name):
 @app.callback(
     Output('height', 'children'),
     Output('weight', 'children'),
+    Output('position', 'children'),
     Input('player_dropdown', 'value'),
 )
 def get_player_weight_height(player_name):
     player_row = all_df["info"].loc[all_df['info']['name'] == player_name]
     height = player_row.iloc[0]["height"]
     weight = player_row.iloc[0]["weight"]
-    return f"Height: {height} cm", f"Weight: {weight} kg"
+    position = player_row.iloc[0]['position']
+    return f"Height: {height} cm", f"Weight: {weight} kg", f"Position: {position}"
 
 @time_this
 @app.callback(
@@ -279,6 +284,7 @@ def plot_player_games_played(player_name):
     fig.update_yaxes(title_text = "games", secondary_y = False)
     fig.update_yaxes(title_text = "minutes", secondary_y = True)
     fig.update_layout(
+        paper_bgcolor='#f8f9fa',
         barmode="overlay",
         title=go.layout.Title(text=f"{player_name} games played vs minutes per game"),
         font={
@@ -327,6 +333,7 @@ def get_player_tackles(player_name):
     fig.update_yaxes(title_text = "Number of Tackles")
     #fig.update_yaxes(title_text = "Number of Tackles won",secondary_y = True)
     fig.update_layout(
+        paper_bgcolor='#f8f9fa',
         barmode="overlay",
         title=go.layout.Title(text=f"{player_name} all tackles vs won tackles"),
         font={
@@ -383,6 +390,7 @@ def get_player_assists(player_name):
     fig.update_yaxes(title_text = "Number of passes",secondary_y = False)
     fig.update_yaxes(title_text = "Number of assists",secondary_y = True)
     fig.update_layout(
+        paper_bgcolor='#f8f9fa',
         barmode="overlay",
         title=go.layout.Title(text=f"{player_name} successful passes vs assists"),
         font={
@@ -392,34 +400,6 @@ def get_player_assists(player_name):
     )
     unify_legend(fig)
     return fig
-
-# def get_player_assists(player_name):
-#     player_id = get_id_from_name(player_name)
-#     player_pass_df = all_df["passing"].loc[all_df["passing"]["id"] == player_id][["season", "passes_short", "passes_medium", "passes_long", "assists"]]
-#     # player_pass_df = player_pass_df.fillna(-100)
-#     figure = make_subplots(specs=[[{"secondary_y": True}]])
-#     for name, values in player_pass_df.iteritems():
-#         if name == "assists":
-#             figure.add_trace(
-#                 go.Scatter(name=name, x=player_pass_df["season"], y=values), secondary_y=True
-#             )
-#         elif name != "season":
-#             figure.add_trace(
-#                 go.Bar(name=name, x=player_pass_df["season"], y=values), secondary_y=False
-#             )
-
-#     figure.update_xaxes(title_text = "season")
-#     figure.update_yaxes(title_text = "passes", secondary_y = False)
-#     figure.update_yaxes(title_text = "assists", secondary_y = True)
-#     figure.update_layout(
-#         barmode="stack",
-#         title=go.layout.Title(text=f"{player_name} passes stats"),
-#         font={
-#                 "size": 12,
-#                 "color": "black"
-#             },
-#     )
-#     return figure
 
 
 def plot_gk(player_name, category="clean sheets"):
@@ -471,6 +451,7 @@ def plot_gk(player_name, category="clean sheets"):
     fig.update_yaxes(title_text = yaxes, secondary_y = False)
     fig.update_yaxes(title_text = yaxes2, secondary_y = True)
     fig.update_layout(
+        paper_bgcolor='#f8f9fa',
         barmode="overlay",
         title=go.layout.Title(text=f"{player_name} {yaxes} vs {yaxes2}"),
         font={
@@ -531,6 +512,14 @@ def display_graph(graph_type):
         return  display, no_display, display
 
 
+def create_card(title, graph_id):
+    return dbc.Card([
+        dbc.CardBody([
+            html.H4(f"{title}"),
+            dcc.Graph(id=f"{graph_id}", config={'displayModeBar': False})
+        ])
+    ], className="mb-4", style={"background-color":"#f8f9fa"})
+
 # modify Pages
 @app.callback(
     Output('page-content', 'children'),
@@ -567,14 +556,18 @@ def display_page(pathname):
         position_shortcuts = {"/midfielder": "M", "/keeper": "G", "/defender": "D", "/striker": "A|FW"}
         position_text = {"/midfielder": "Midfielders", "/keeper": "Goal Keepers", "/defender": "Defenders", "/striker": "Strikers"}
         position_shortcut = position_shortcuts[pathname]
-        positions = all_df["info"].loc[all_df["info"]["position"].str.contains(position_shortcut)].sort_values("position")["position"].unique().tolist()
+        positions = all_df["info"].loc[all_df["info"]["general_position"].str.contains(position_shortcut)].sort_values("general_position")["general_position"].unique().tolist()
         positions.insert(0, "All")
         positions = np.array(positions)
         if position_shortcut == "G":  # the goalkeeper has very specific stats
             gk_graphs = [
-                dcc.Graph (id="plot_clean_sheets", config={'displayModeBar': False}),
-                dcc.Graph (id="plot_penalties", config={'displayModeBar': False}),
-                dcc.Graph (id="plot_saves", config={'displayModeBar': False})
+                dbc.Row([
+                    dbc.Col([create_card("Clean Sheets", "plot_clean_sheets")], width=6),
+                    dbc.Col([create_card("Penalties", "plot_penalties")], width=6)
+                ]),
+                dbc.Row([
+                    dbc.Col([create_card("Saves", "plot_saves")], width=12)
+                ])
             ]
             graph_type = None
             other_graphs = None
@@ -608,20 +601,20 @@ def display_page(pathname):
                 dbc.Row(
                     id="info_graphs",
                     children=[
-                    dbc.Col([dcc.Graph(id="plot_a_player_cards_seasons", config={'displayModeBar': False})], width=6),
-                    dbc.Col([dcc.Graph(id="plot_player_games_played", config={'displayModeBar': False})], width=6)
+                    dbc.Col([create_card("Cards", "plot_a_player_cards_seasons")], width=6),
+                    dbc.Col([create_card("Games played", "plot_player_games_played")], width = 6),                        
                 ]),
                 dbc.Row(
                     id="defender_graphs",
                     children=[
-                     dbc.Col([dcc.Graph(id="plot_a_player_fouls_cards_seasons", config={'displayModeBar': False})], width=6),
-                     dbc.Col([dcc.Graph(id="plot_a_player_tackles", config={'displayModeBar': False})], width=6)
+                     dbc.Col([create_card("Fouls", "plot_a_player_fouls_cards_seasons")], width=6),
+                     dbc.Col([create_card("Tackles", "plot_a_player_tackles")], width=6)
                 ]),
                 dbc.Row(
                     id="striker_graphs",
                     children=[
-                    dbc.Col([dcc.Graph(id="plot_a_player_assists", config={'displayModeBar': False})], width=6),
-                    dbc.Col([dcc.Graph(id="plot_player_goals", config={'displayModeBar': False})], width=6)
+                    dbc.Col([create_card("Assists", "plot_a_player_assists")], width=6),
+                    dbc.Col([create_card("Goals", "plot_player_goals")], width=6)
                 ])
             ]
         return html.Div(children=[
@@ -672,14 +665,17 @@ def display_page(pathname):
                         html.Span(id="weight"),
                     ], style={"margin-top": "1rem"}),
 
+                    html.Div(children=[
+                        html.Span(id="position"),
+                    ], style={"margin-top": "1rem"}),
+
                     graph_type,
                     html.Div(
                         [
                             html.H5(f"Clubs"),
                             dcc.Graph(
                                 id="plot_a_player_clubs_seasons",
-
-                                config={'displayModeBar': False}
+                                config={'displayModeBar': False},
                             ),
                         ], style={"position": "fixed", "bottom":"0", "width":"14%",}
                     ),
