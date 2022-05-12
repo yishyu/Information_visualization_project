@@ -54,9 +54,9 @@ def unify_legend(fig):
 def update_dropdowns(position, all_positions):
     if position == "All":
         all_positions.remove(position)
-        players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["general_position"].isin(all_positions)].unique()
+        players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["position"].isin(all_positions)].unique()
     else:
-        players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["general_position"] == position].unique()
+        players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["position"] == position].unique()
     player = players[0]
     return player, players
 
@@ -107,7 +107,7 @@ def plot_player_goals(player_name):
             if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:                
                 fig.add_trace(
                     go.Bar(
-                        name = f"Goals for {teams.iloc[idx_change_of_teams]}",
+                        name = "Goals",
                         x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                         y = player_df.iloc[idx_change_of_teams:i, :]["goals"].tolist(),
                         marker_color = team_colors[teams.iloc[i-1]]
@@ -118,7 +118,7 @@ def plot_player_goals(player_name):
                     go.Scatter(
                         x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                         y = player_df.iloc[idx_change_of_teams:i, :]["goals_per_shot_on_target"].tolist(),
-                        name = f"Scoring % for {teams.iloc[idx_change_of_teams]}",
+                        name = "Scoring %",
                         marker_color="#000000"
                         ),
                         secondary_y = True,
@@ -128,12 +128,12 @@ def plot_player_goals(player_name):
         fig.update_yaxes(title_text = "goals", secondary_y = False)
         fig.update_yaxes(title_text = "percentage", secondary_y = True)
         fig.update_layout(
-        paper_bgcolor='#f8f9fa',
-        title=go.layout.Title(text=f"{player_name} scored goals vs scoring percentage"),
-        font={
-                "size": 12,
-                "color": "black"
-            },
+            legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            title=go.layout.Title(text=f"{player_name} scored goals vs scoring percentage"),
+            font={
+                    "size": 12,
+                    "color": "black"
+                },
     )
     except:
         fig = go.Figure()
@@ -157,10 +157,10 @@ def plot_a_player_cards_seasons(player_name):
         ],
         layout=go.Layout(
             barmode="group",
+            legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
             title=go.layout.Title(text=f"All cards gotten by {player_name} throughout the seasons"),
             xaxis_title="Seasons",
             yaxis_title="Amount of Cards",
-            paper_bgcolor='#f8f9fa',
             font={
                 "size": 12,
                 "color": "black"
@@ -184,9 +184,9 @@ def plot_a_player_fouls_cards_seasons(player_name):
             go.Scatter(name='Number of Fouls', x=player_misc_df["season"].unique(), y=player_misc_df["fouls"], marker=dict(color="#008000")),
         ],
         layout=go.Layout(
-            paper_bgcolor='#f8f9fa',
             barmode="group",
-            title=go.layout.Title(text=f" Comparison between the amount of faults and <br> the number of cards gotten by {player_name} throughout the seasons"),
+            legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            title=go.layout.Title(text=f"Comparison between the amount of faults and the number of cards gotten by {player_name} throughout the seasons"),
             xaxis_title="Seasons",
             yaxis_title="Unity",
             font={
@@ -201,15 +201,13 @@ def plot_a_player_fouls_cards_seasons(player_name):
 @app.callback(
     Output('height', 'children'),
     Output('weight', 'children'),
-    Output('position', 'children'),
     Input('player_dropdown', 'value'),
 )
 def get_player_weight_height(player_name):
     player_row = all_df["info"].loc[all_df['info']['name'] == player_name]
     height = player_row.iloc[0]["height"]
     weight = player_row.iloc[0]["weight"]
-    position = player_row.iloc[0]['position']
-    return f"Height: {height} cm", f"Weight: {weight} kg", f"Position: {position}"
+    return f"Height: {height} cm", f"Weight: {weight} kg"
 
 @time_this
 @app.callback(
@@ -260,7 +258,7 @@ def plot_player_games_played(player_name):
         if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
             fig.add_trace(
                 go.Bar(
-                    name = f"Games played for {teams.iloc[idx_change_of_teams]}",
+                    name = "Games played",
                     x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_df.iloc[idx_change_of_teams:i, :]["games"].tolist(),
                     marker_color = team_colors[teams.iloc[i-1]]
@@ -270,8 +268,7 @@ def plot_player_games_played(player_name):
             )
             fig.add_trace(
                 go.Scatter(
-                    name = f"Minutes/game for {teams.iloc[idx_change_of_teams]}",
-                    #textfont = 9,
+                    name = "Minutes/game",
                     x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(), 
                     y = player_df.iloc[idx_change_of_teams:i, :]["minutes_per_game"].tolist(),
                     marker_color="#000000"
@@ -284,8 +281,8 @@ def plot_player_games_played(player_name):
     fig.update_yaxes(title_text = "games", secondary_y = False)
     fig.update_yaxes(title_text = "minutes", secondary_y = True)
     fig.update_layout(
-        paper_bgcolor='#f8f9fa',
         barmode="overlay",
+        legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         title=go.layout.Title(text=f"{player_name} games played vs minutes per game"),
         font={
                 "size": 12,
@@ -314,7 +311,7 @@ def get_player_tackles(player_name):
         if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
             fig.add_trace(
                 go.Bar(
-                    name=f"All tackles for {teams.iloc[idx_change_of_teams]}",
+                    name="All tackles",
                     x = player_def_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_def_df.iloc[idx_change_of_teams:i, :]["tackles"].tolist(),
                     marker_color = team_colors[teams.iloc[i-1]]
@@ -322,7 +319,7 @@ def get_player_tackles(player_name):
             )
             fig.add_trace(
                 go.Scatter(
-                    name = f"Won tackles for {teams.iloc[idx_change_of_teams]}",
+                    name = "Won tackles",
                     x = player_def_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_def_df.iloc[idx_change_of_teams:i, :]["tackles_won"].tolist(),
                     marker_color="#000000"
@@ -331,10 +328,9 @@ def get_player_tackles(player_name):
             idx_change_of_teams = i
     fig.update_xaxes(title_text = "season")
     fig.update_yaxes(title_text = "Number of Tackles")
-    #fig.update_yaxes(title_text = "Number of Tackles won",secondary_y = True)
     fig.update_layout(
-        paper_bgcolor='#f8f9fa',
         barmode="overlay",
+        legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         title=go.layout.Title(text=f"{player_name} all tackles vs won tackles"),
         font={
                 "size": 12,
@@ -362,7 +358,7 @@ def get_player_assists(player_name):
         if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
             fig.add_trace(
                 go.Bar(
-                    name=f"Passes for {teams.iloc[idx_change_of_teams]}",
+                    name="Passes",
                     x = player_pass_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_pass_df.iloc[idx_change_of_teams:i, :]["passes"].tolist(),
                     marker_color = team_colors[teams.iloc[i-1]]
@@ -371,7 +367,7 @@ def get_player_assists(player_name):
             successfull_passes_pct = ((player_pass_df.iloc[idx_change_of_teams:i, :]["passes_pct"])*0.01).tolist()
             fig.add_trace(
                 go.Bar(
-                    name=f"Successful passes for {teams.iloc[idx_change_of_teams]}",
+                    name="Successful passes",
                     x = player_pass_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = ((player_pass_df.iloc[idx_change_of_teams:i, :]["passes"])*successfull_passes_pct).tolist(),
                     marker_color = "#16ff32"
@@ -379,7 +375,7 @@ def get_player_assists(player_name):
             )
             fig.add_trace(
                 go.Scatter(
-                    name = f"assists for {teams.iloc[idx_change_of_teams]}",
+                    name = f"Assists",
                     x = player_pass_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_pass_df.iloc[idx_change_of_teams:i, :]["assists"].tolist(),
                     marker_color="#000000"
@@ -390,8 +386,8 @@ def get_player_assists(player_name):
     fig.update_yaxes(title_text = "Number of passes",secondary_y = False)
     fig.update_yaxes(title_text = "Number of assists",secondary_y = True)
     fig.update_layout(
-        paper_bgcolor='#f8f9fa',
         barmode="overlay",
+        legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         title=go.layout.Title(text=f"{player_name} successful passes vs assists"),
         font={
                 "size": 12,
@@ -400,7 +396,6 @@ def get_player_assists(player_name):
     )
     unify_legend(fig)
     return fig
-
 
 def plot_gk(player_name, category="clean sheets"):
     player_id = get_id_from_name(player_name)
@@ -432,7 +427,7 @@ def plot_gk(player_name, category="clean sheets"):
         if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
             fig.add_trace(
                 go.Bar(
-                    name=f"{yaxes} for {teams.iloc[idx_change_of_teams]}",
+                    name=f"{yaxes}",
                     x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_df.iloc[idx_change_of_teams:i, :][column].tolist(),
                     marker_color = team_colors[teams.iloc[i-1]]
@@ -440,7 +435,7 @@ def plot_gk(player_name, category="clean sheets"):
             )
             fig.add_trace(
                 go.Scatter(
-                    name = f"{yaxes2} for {teams.iloc[idx_change_of_teams]}",
+                    name = f"{yaxes2}",
                     x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_df.iloc[idx_change_of_teams:i, :][column2].tolist(),
                     marker_color="#000000"
@@ -451,8 +446,8 @@ def plot_gk(player_name, category="clean sheets"):
     fig.update_yaxes(title_text = yaxes, secondary_y = False)
     fig.update_yaxes(title_text = yaxes2, secondary_y = True)
     fig.update_layout(
-        paper_bgcolor='#f8f9fa',
         barmode="overlay",
+        legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         title=go.layout.Title(text=f"{player_name} {yaxes} vs {yaxes2}"),
         font={
                 "size": 12,
@@ -512,14 +507,6 @@ def display_graph(graph_type):
         return  display, no_display, display
 
 
-def create_card(title, graph_id):
-    return dbc.Card([
-        dbc.CardBody([
-            html.H4(f"{title}"),
-            dcc.Graph(id=f"{graph_id}", config={'displayModeBar': False})
-        ])
-    ], className="mb-4", style={"background-color":"#f8f9fa"})
-
 # modify Pages
 @app.callback(
     Output('page-content', 'children'),
@@ -556,18 +543,14 @@ def display_page(pathname):
         position_shortcuts = {"/midfielder": "M", "/keeper": "G", "/defender": "D", "/striker": "A|FW"}
         position_text = {"/midfielder": "Midfielders", "/keeper": "Goal Keepers", "/defender": "Defenders", "/striker": "Strikers"}
         position_shortcut = position_shortcuts[pathname]
-        positions = all_df["info"].loc[all_df["info"]["general_position"].str.contains(position_shortcut)].sort_values("general_position")["general_position"].unique().tolist()
+        positions = all_df["info"].loc[all_df["info"]["position"].str.contains(position_shortcut)].sort_values("position")["position"].unique().tolist()
         positions.insert(0, "All")
         positions = np.array(positions)
         if position_shortcut == "G":  # the goalkeeper has very specific stats
             gk_graphs = [
-                dbc.Row([
-                    dbc.Col([create_card("Clean Sheets", "plot_clean_sheets")], width=6),
-                    dbc.Col([create_card("Penalties", "plot_penalties")], width=6)
-                ]),
-                dbc.Row([
-                    dbc.Col([create_card("Saves", "plot_saves")], width=12)
-                ])
+                dcc.Graph (id="plot_clean_sheets", config={'displayModeBar': False}),
+                dcc.Graph (id="plot_penalties", config={'displayModeBar': False}),
+                dcc.Graph (id="plot_saves", config={'displayModeBar': False})
             ]
             graph_type = None
             other_graphs = None
@@ -601,20 +584,20 @@ def display_page(pathname):
                 dbc.Row(
                     id="info_graphs",
                     children=[
-                    dbc.Col([create_card("Cards", "plot_a_player_cards_seasons")], width=6),
-                    dbc.Col([create_card("Games played", "plot_player_games_played")], width = 6),                        
+                    dbc.Col([dcc.Graph(id="plot_a_player_cards_seasons", config={'displayModeBar': False})], width=6),
+                    dbc.Col([dcc.Graph(id="plot_player_games_played", config={'displayModeBar': False})], width=6)
                 ]),
                 dbc.Row(
                     id="defender_graphs",
                     children=[
-                     dbc.Col([create_card("Fouls", "plot_a_player_fouls_cards_seasons")], width=6),
-                     dbc.Col([create_card("Tackles", "plot_a_player_tackles")], width=6)
+                     dbc.Col([dcc.Graph(id="plot_a_player_fouls_cards_seasons", config={'displayModeBar': False})], width=6),
+                     dbc.Col([dcc.Graph(id="plot_a_player_tackles", config={'displayModeBar': False})], width=6)
                 ]),
                 dbc.Row(
                     id="striker_graphs",
                     children=[
-                    dbc.Col([create_card("Assists", "plot_a_player_assists")], width=6),
-                    dbc.Col([create_card("Goals", "plot_player_goals")], width=6)
+                    dbc.Col([dcc.Graph(id="plot_a_player_assists", config={'displayModeBar': False})], width=6),
+                    dbc.Col([dcc.Graph(id="plot_player_goals", config={'displayModeBar': False})], width=6)
                 ])
             ]
         return html.Div(children=[
@@ -665,17 +648,14 @@ def display_page(pathname):
                         html.Span(id="weight"),
                     ], style={"margin-top": "1rem"}),
 
-                    html.Div(children=[
-                        html.Span(id="position"),
-                    ], style={"margin-top": "1rem"}),
-
                     graph_type,
                     html.Div(
                         [
                             html.H5(f"Clubs"),
                             dcc.Graph(
                                 id="plot_a_player_clubs_seasons",
-                                config={'displayModeBar': False},
+
+                                config={'displayModeBar': False}
                             ),
                         ], style={"position": "fixed", "bottom":"0", "width":"14%",}
                     ),
