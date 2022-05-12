@@ -53,9 +53,9 @@ def unify_legend(fig):
 def update_dropdowns(position, all_positions):
     if position == "All":
         all_positions.remove(position)
-        players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["position"].isin(all_positions)].unique()
+        players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["general_position"].isin(all_positions)].unique()
     else:
-        players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["position"] == position].unique()
+        players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["general_position"] == position].unique()
     player = players[0]
     return player, players
 
@@ -193,13 +193,15 @@ def plot_a_player_fouls_cards_seasons(player_name):
 @app.callback(
     Output('height', 'children'),
     Output('weight', 'children'),
+    Output('position', 'children'),
     Input('player_dropdown', 'value'),
 )
 def get_player_weight_height(player_name):
     player_row = all_df["info"].loc[all_df['info']['name'] == player_name]
     height = player_row.iloc[0]["height"]
     weight = player_row.iloc[0]["weight"]
-    return f"Height: {height} cm", f"Weight: {weight} kg"
+    position = player_row.iloc[0]['position']
+    return f"Height: {height} cm", f"Weight: {weight} kg", f"Position: {position}"
 
 @time_this
 @app.callback(
@@ -554,7 +556,7 @@ def display_page(pathname):
         position_shortcuts = {"/midfielder": "M", "/keeper": "G", "/defender": "D", "/striker": "A|FW"}
         position_text = {"/midfielder": "Midfielders", "/keeper": "Goal Keepers", "/defender": "Defenders", "/striker": "Strikers"}
         position_shortcut = position_shortcuts[pathname]
-        positions = all_df["info"].loc[all_df["info"]["position"].str.contains(position_shortcut)].sort_values("position")["position"].unique().tolist()
+        positions = all_df["info"].loc[all_df["info"]["general_position"].str.contains(position_shortcut)].sort_values("general_position")["general_position"].unique().tolist()
         positions.insert(0, "All")
         positions = np.array(positions)
         if position_shortcut == "G":  # the goalkeeper has very specific stats
@@ -661,6 +663,10 @@ def display_page(pathname):
 
                     html.Div(children=[
                         html.Span(id="weight"),
+                    ], style={"margin-top": "1rem"}),
+
+                    html.Div(children=[
+                        html.Span(id="position"),
                     ], style={"margin-top": "1rem"}),
 
                     graph_type,
