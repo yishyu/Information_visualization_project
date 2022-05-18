@@ -124,9 +124,9 @@ def plot_player_goals(player_name):
                         secondary_y = True,
                 )
                 idx_change_of_teams = i
-        fig.update_xaxes(title_text = "season")
-        fig.update_yaxes(title_text = "goals", secondary_y = False)
-        fig.update_yaxes(title_text = "percentage", secondary_y = True)
+        fig.update_xaxes(title_text = "Season")
+        fig.update_yaxes(title_text = "Goals", secondary_y = False)
+        fig.update_yaxes(title_text = "Percentage", secondary_y = True)
         fig.update_layout(
         legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         paper_bgcolor='#f8f9fa',
@@ -189,7 +189,7 @@ def plot_a_player_fouls_cards_seasons(player_name):
             paper_bgcolor='#f8f9fa',
             legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
             barmode="group",
-            title=go.layout.Title(text=f"Amount of faults vs the number of cards for{player_name}"),
+            title=go.layout.Title(text=f"Amount of faults vs the number of cards for {player_name}"),
             xaxis_title="Seasons",
             yaxis_title="Unity",
             font={
@@ -282,9 +282,9 @@ def plot_player_games_played(player_name):
 
             )
             idx_change_of_teams = i
-    fig.update_xaxes(title_text = "season")
-    fig.update_yaxes(title_text = "games", secondary_y = False)
-    fig.update_yaxes(title_text = "minutes", secondary_y = True)
+    fig.update_xaxes(title_text = "Season")
+    fig.update_yaxes(title_text = "Games", secondary_y = False)
+    fig.update_yaxes(title_text = "Minutes", secondary_y = True)
     fig.update_layout(
         barmode="overlay",
         legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
@@ -332,7 +332,7 @@ def get_player_tackles(player_name):
                 )#,secondary_y = True,
             )
             idx_change_of_teams = i
-    fig.update_xaxes(title_text = "season")
+    fig.update_xaxes(title_text = "Season")
     fig.update_yaxes(title_text = "Number of Tackles")
     #fig.update_yaxes(title_text = "Number of Tackles won",secondary_y = True)
     fig.update_layout(
@@ -390,7 +390,7 @@ def get_player_assists(player_name):
                 ),secondary_y = True,
             )
             idx_change_of_teams = i
-    fig.update_xaxes(title_text = "season")
+    fig.update_xaxes(title_text = "Season")
     fig.update_yaxes(title_text = "Number of passes",secondary_y = False)
     fig.update_yaxes(title_text = "Number of assists",secondary_y = True)
     fig.update_layout(
@@ -452,7 +452,7 @@ def plot_gk(player_name, category="clean sheets"):
                 ),secondary_y = True,
             )
             idx_change_of_teams = i
-    fig.update_xaxes(title_text = "season")
+    fig.update_xaxes(title_text = "Season")
     fig.update_yaxes(title_text = yaxes, secondary_y = False)
     fig.update_yaxes(title_text = yaxes2, secondary_y = True)
     fig.update_layout(
