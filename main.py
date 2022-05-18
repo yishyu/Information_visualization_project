@@ -128,7 +128,7 @@ def plot_player_goals(player_name):
         fig.update_yaxes(title_text = "goals", secondary_y = False)
         fig.update_yaxes(title_text = "percentage", secondary_y = True)
         fig.update_layout(
-            legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+            legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1, font = dict(color = "black")),
             title=go.layout.Title(text=f"{player_name} scored goals vs scoring percentage"),
             font={
                     "size": 12,
