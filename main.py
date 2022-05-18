@@ -82,7 +82,7 @@ def get_name_from_id(player_id):
 def get_team_colors(teams):
     team_colors = {}
     cnt = 0
-    for team in teams: 
+    for team in teams:
             if (not (team in list(team_colors.keys()))):
                     team_colors[team] =  TEAMS_COLORS[cnt]
                     cnt += 1
@@ -104,7 +104,7 @@ def plot_player_goals(player_name):
         idx_change_of_teams = 0
 
         for i in range (1, len(teams)+1):
-            if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:                
+            if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
                 fig.add_trace(
                     go.Bar(
                         name = f"Goals",
@@ -130,6 +130,7 @@ def plot_player_goals(player_name):
         fig.update_layout(
         legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         paper_bgcolor='#f8f9fa',
+        barmode="overlay",
         title=go.layout.Title(text=f"{player_name} scored goals vs scoring percentage"),
         font={
                 "size": 12,
@@ -274,7 +275,7 @@ def plot_player_games_played(player_name):
             fig.add_trace(
                 go.Scatter(
                     name = f"Minutes/game",
-                    x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(), 
+                    x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_df.iloc[idx_change_of_teams:i, :]["minutes_per_game"].tolist(),
                     marker_color="#000000"
 
@@ -608,7 +609,7 @@ def display_page(pathname):
                     id="info_graphs",
                     children=[
                     dbc.Col([create_card("Cards", "plot_a_player_cards_seasons")], width=6),
-                    dbc.Col([create_card("Games played", "plot_player_games_played")], width = 6),                        
+                    dbc.Col([create_card("Games played", "plot_player_games_played")], width = 6),
                 ]),
                 dbc.Row(
                     id="defender_graphs",
