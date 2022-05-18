@@ -189,7 +189,7 @@ def plot_a_player_fouls_cards_seasons(player_name):
             paper_bgcolor='#f8f9fa',
             legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
             barmode="group",
-            title=go.layout.Title(text=f" Comparison between the amount of faults and <br> the number of cards gotten by {player_name} throughout the seasons"),
+            title=go.layout.Title(text=f"Amount of faults vs the number of cards for{player_name}"),
             xaxis_title="Seasons",
             yaxis_title="Unity",
             font={
