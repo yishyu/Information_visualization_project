@@ -245,6 +245,7 @@ def plot_player_games_played(player_name):
         player_df = all_df["playing_time"].loc[all_df["playing_time"]["id"] == player_id]
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         teams = player_df['squad']
+        print(teams)
         teams_unique = np.unique(player_df['squad'])
         team_colors = get_team_colors(teams_unique)
         idx_change_of_teams = 0
@@ -368,7 +369,7 @@ def get_player_assists(player_name):
                     name=f"Successful passes",
                     x = player_pass_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = ((player_pass_df.iloc[idx_change_of_teams:i, :]["passes"])*successfull_passes_pct).tolist(),
-                    marker_color = "#16ff32"
+                    marker_color = "#b6e880"
                 ),secondary_y = False,
             )
             fig.add_trace(
