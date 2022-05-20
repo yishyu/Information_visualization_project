@@ -19,21 +19,8 @@ app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.BOOTS
 
 all_df = get_all_dataframes("out/")
 
-# colors: https://plotly.com/python/discrete-color/
-TEAMS_COLORS = [
-    '#1f77b4',  # muted blue
-    '#ff7f0e',  # safety orange
-    '#2ca02c',  # cooked asparagus green
-    '#d62728',  # brick red
-    '#9467bd',  # muted purple
-    '#8c564b',  # chestnut brown
-    '#e377c2',  # raspberry yogurt pink
-    '#7f7f7f',  # middle gray
-    '#bcbd22',  # curry yellow-green
-    '#17becf'   # blue-teal
-]
-
-
+# colors: https://plotly.com/python/builtin-colorscales/
+TEAMS_COLORS = px.colors.qualitative.Prism
 
 def unify_legend(fig):
     # https://stackoverflow.com/questions/26939121/how-to-avoid-duplicate-legend-labels-in-plotly-or-pass-custom-legend-labels
@@ -254,48 +241,50 @@ def get_player_club_evolution(player_name):
 )
 def plot_player_games_played(player_name):
     player_id = get_id_from_name(player_name)
-    player_df = all_df["playing_time"].loc[all_df["playing_time"]["id"] == player_id].sort_values('season')
-    fig = make_subplots(specs=[[{"secondary_y": True}]])
-    teams = player_df['squad']
-    teams_unique = np.unique(player_df['squad'])
-    team_colors = get_team_colors(teams_unique)
-    idx_change_of_teams = 0
-    for i in range (1, len(teams)+1):
-        if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
-            fig.add_trace(
-                go.Bar(
-                    name = f"Games played",
-                    x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
-                    y = player_df.iloc[idx_change_of_teams:i, :]["games"].tolist(),
-                    marker_color = team_colors[teams.iloc[i-1]]
+    try:
+        player_df = all_df["playing_time"].loc[all_df["playing_time"]["id"] == player_id]
+        fig = make_subplots(specs=[[{"secondary_y": True}]])
+        teams = player_df['squad']
+        teams_unique = np.unique(player_df['squad'])
+        team_colors = get_team_colors(teams_unique)
+        idx_change_of_teams = 0
 
-                ),secondary_y = False,
-
-            )
-            fig.add_trace(
-                go.Scatter(
-                    name = f"Minutes/game",
-                    x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
-                    y = player_df.iloc[idx_change_of_teams:i, :]["minutes_per_game"].tolist(),
-                    marker_color="#000000"
-
-                ),secondary_y = True,
-
-            )
-            idx_change_of_teams = i
-    fig.update_xaxes(title_text = "Season")
-    fig.update_yaxes(title_text = "Games", secondary_y = False)
-    fig.update_yaxes(title_text = "Minutes", secondary_y = True)
-    fig.update_layout(
-        barmode="overlay",
+        for i in range (1, len(teams)+1):
+            if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
+                fig.add_trace(
+                    go.Bar(
+                        name = f"Games played",
+                        x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
+                        y = player_df.iloc[idx_change_of_teams:i, :]["games"].tolist(),
+                        marker_color = team_colors[teams.iloc[i-1]]
+                        ),
+                        secondary_y = False,
+                )
+                fig.add_trace(
+                    go.Scatter(
+                        x = player_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
+                        y = player_df.iloc[idx_change_of_teams:i, :]["minutes_per_game"].tolist(),
+                        name = f"Minutes/game",
+                        marker_color="#000000"
+                        ),
+                        secondary_y = True,
+                )
+                idx_change_of_teams = i
+        fig.update_xaxes(title_text = "Season")
+        fig.update_yaxes(title_text = "Goals", secondary_y = False)
+        fig.update_yaxes(title_text = "Percentage", secondary_y = True)
+        fig.update_layout(
         legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         paper_bgcolor='#f8f9fa',
+        barmode="overlay",
         title=go.layout.Title(text=f"{player_name} games played vs minutes per game"),
         font={
                 "size": 12,
                 "color": "black"
             },
     )
+    except:
+        fig = go.Figure()
     unify_legend(fig)
     return fig
 
@@ -712,4 +701,4 @@ if __name__ == '__main__':
     # for name, df in all_df.items():
     #     if name != 'info':
     #         generate_color(df["squad"])
-    app.run_server(debug=True, threaded=True)
+    app.run_server(debug=False, threaded=True)
