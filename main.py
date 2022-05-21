@@ -706,4 +706,4 @@ if __name__ == '__main__':
     # for name, df in all_df.items():
     #     if name != 'info':
     #         generate_color(df["squad"])
-    app.run_server(debug=True, threaded=True)
+    app.run_server(debug=False, threaded=True)
