@@ -544,6 +544,7 @@ def display_page(pathname):
             html.H3(id="select_position_title", children='Select the position you are looking for'),
             html.Div(
                 children=[
+                    # https://community.plotly.com/t/how-to-embed-images-into-a-dash-app/61839
                     html.Img(src=f'data:image/png;base64,{soccerfield.decode()}', style={"width": "60%", "margin": "auto", "display": "block"}),
                     html.Div(
                         id="overlay",
