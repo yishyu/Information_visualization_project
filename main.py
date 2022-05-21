@@ -529,7 +529,10 @@ def display_page(pathname):
         return html.Div(children=[
             html.Div([  dcc.Link(html.H1(children='Soccer Statistics', className="header-title"), className="link", href="/"),
             html.H3(children="This website contains statistics about ~3000 (ex)players in the 5 best leagues in Europe.", className="header-description"),
-            html.H3(children="(Spain, Belgium, Germany, France & Italy)", className="header-description"),
+            html.H3(children=[
+                "(Spain, Belgium, Germany, France & Italy) ",
+                html.A('Dataset Source', href='https://www.kaggle.com/datasets/biniyamyohannes/soccer-player-data-from-fbrefcom', target='_blank')
+                ], className="header-description"),
             ], className="header"),
             html.H3(id="select_position_title", children='Select the position you are looking for'),
             html.Div(
@@ -703,4 +706,4 @@ if __name__ == '__main__':
     # for name, df in all_df.items():
     #     if name != 'info':
     #         generate_color(df["squad"])
-    app.run_server(debug=False, threaded=True)
+    app.run_server(debug=True, threaded=True)
