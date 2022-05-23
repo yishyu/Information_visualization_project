@@ -111,9 +111,9 @@ def plot_player_goals(player_name):
                         secondary_y = True,
                 )
                 idx_change_of_teams = i
-        fig.update_xaxes(title_text = "Season")
-        fig.update_yaxes(title_text = "Goals", secondary_y = False)
-        fig.update_yaxes(title_text = "Percentage", secondary_y = True)
+        fig.update_xaxes(title_text = "Season", fixedrange=True)
+        fig.update_yaxes(title_text = "Goals", secondary_y = False, fixedrange=True)
+        fig.update_yaxes(title_text = "Percentage", secondary_y = True, fixedrange=True)
         fig.update_layout(
         legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         paper_bgcolor='#f8f9fa',
@@ -139,7 +139,7 @@ def plot_a_player_cards_seasons(player_name):
     player_misc_df = all_df["misc"].loc[all_df["misc"]["id"] == player_id]
 
     button_layer_1_height = 1.08
-    return go.Figure(
+    fig = go.Figure(
         data=[
             go.Bar(name="Red Cards", x=player_misc_df["season"].unique(), y=player_misc_df["cards_red"], marker=dict(color="red"), offsetgroup=0),
             go.Bar(name='Yellow Cards', x=player_misc_df["season"].unique(), y=player_misc_df["cards_yellow"], marker=dict(color="#FFEA00"), offsetgroup=1),
@@ -157,6 +157,9 @@ def plot_a_player_cards_seasons(player_name):
             },
         )
     )
+    fig.update_xaxes(fixedrange=True)
+    fig.update_yaxes(fixedrange=True)
+    return fig
 
 @time_this
 @app.callback(
@@ -168,7 +171,7 @@ def plot_a_player_fouls_cards_seasons(player_name):
     player_misc_df = all_df["misc"].loc[all_df["misc"]["id"] == player_id]
     player_misc_df["cards"] = player_misc_df["cards_red"] + player_misc_df["cards_yellow"]
     button_layer_1_height = 1.08
-    return go.Figure(
+    fig = go.Figure(
         data=[
             go.Scatter(name='Cards gotten', x=player_misc_df["season"].unique(), y=player_misc_df["cards"], marker=dict(color="Orange")),
             go.Scatter(name='Number of Fouls', x=player_misc_df["season"].unique(), y=player_misc_df["fouls"], marker=dict(color="#008000")),
@@ -186,6 +189,9 @@ def plot_a_player_fouls_cards_seasons(player_name):
             },
         )
     )
+    fig.update_xaxes(fixedrange=True)
+    fig.update_yaxes(fixedrange=True)
+    return fig
 
 
 @time_this
@@ -271,9 +277,9 @@ def plot_player_games_played(player_name):
                         secondary_y = True,
                 )
                 idx_change_of_teams = i
-        fig.update_xaxes(title_text = "Season")
-        fig.update_yaxes(title_text = "Goals", secondary_y = False)
-        fig.update_yaxes(title_text = "Percentage", secondary_y = True)
+        fig.update_xaxes(title_text = "Season", fixedrange=True)
+        fig.update_yaxes(title_text = "Games played", secondary_y = False, fixedrange=True)
+        fig.update_yaxes(title_text = "Percentage", secondary_y = True, fixedrange=True)
         fig.update_layout(
         legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         paper_bgcolor='#f8f9fa',
@@ -323,8 +329,8 @@ def get_player_tackles(player_name):
                 )#,secondary_y = True,
             )
             idx_change_of_teams = i
-    fig.update_xaxes(title_text = "Season")
-    fig.update_yaxes(title_text = "Number of Tackles")
+    fig.update_xaxes(title_text = "Season", fixedrange=True)
+    fig.update_yaxes(title_text = "Number of Tackles", fixedrange=True)
     #fig.update_yaxes(title_text = "Number of Tackles won",secondary_y = True)
     fig.update_layout(
         legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
@@ -381,9 +387,9 @@ def get_player_assists(player_name):
                 ),secondary_y = True,
             )
             idx_change_of_teams = i
-    fig.update_xaxes(title_text = "Season")
-    fig.update_yaxes(title_text = "Number of passes",secondary_y = False)
-    fig.update_yaxes(title_text = "Number of assists",secondary_y = True)
+    fig.update_xaxes(title_text = "Season", fixedrange=True)
+    fig.update_yaxes(title_text = "Number of passes",secondary_y = False, fixedrange=True)
+    fig.update_yaxes(title_text = "Number of assists",secondary_y = True, fixedrange=True)
     fig.update_layout(
         paper_bgcolor='#f8f9fa',
         legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
@@ -443,9 +449,9 @@ def plot_gk(player_name, category="clean sheets"):
                 ),secondary_y = True,
             )
             idx_change_of_teams = i
-    fig.update_xaxes(title_text = "Season")
-    fig.update_yaxes(title_text = yaxes, secondary_y = False)
-    fig.update_yaxes(title_text = yaxes2, secondary_y = True)
+    fig.update_xaxes(title_text = "Season", fixedrange=True)
+    fig.update_yaxes(title_text = yaxes, secondary_y = False, fixedrange=True)
+    fig.update_yaxes(title_text = yaxes2, secondary_y = True, fixedrange=True)
     fig.update_layout(
         paper_bgcolor='#f8f9fa',
         legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
@@ -513,7 +519,7 @@ def create_card(title, graph_id):
     return dbc.Card([
         dbc.CardBody([
             html.H4(f"{title}"),
-            dcc.Graph(id=f"{graph_id}", config={'displayModeBar': False})
+            dcc.Graph(id=f"{graph_id}", config={'displayModeBar': False, })
         ])
     ], className="mb-4", style={"background-color":"#f8f9fa"})
 
