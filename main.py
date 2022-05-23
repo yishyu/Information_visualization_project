@@ -277,9 +277,9 @@ def plot_player_games_played(player_name):
                         secondary_y = True,
                 )
                 idx_change_of_teams = i
-        fig.update_xaxes(title_text = "Season")
-        fig.update_yaxes(title_text = "Games played", secondary_y = False)
-        fig.update_yaxes(title_text = "Minutes/game", secondary_y = True)
+        fig.update_xaxes(title_text = "Season", fixedrange=True)
+        fig.update_yaxes(title_text = "Games played", secondary_y = False, fixedrange=True)
+        fig.update_yaxes(title_text = "Minutes/game", secondary_y = True, fixedrange=True)
         fig.update_layout(
         legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         paper_bgcolor='#f8f9fa',
@@ -684,7 +684,7 @@ def display_page(pathname):
                                 id="plot_a_player_clubs_seasons",
                                 config={'displayModeBar': False},
                             ),
-                        ], style={"position": "fixed", "bottom":"0", "width":"14%", "margin-bottom": "5rem"}
+                        ], style={"position": "fixed", "bottom":"0", "width":"14%"}
                     ),
 
                 ], className="sidebar"
