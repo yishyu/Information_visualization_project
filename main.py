@@ -3,7 +3,7 @@ from dash import Dash, html, dcc, Input, Output, callback_context
 import plotly.express as px
 import pandas as pd
 from preprocess import get_all_dataframes
-from utils import time_this
+from utils import time_this  # self created utils to time functions
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import os
@@ -23,24 +23,31 @@ all_df = get_all_dataframes("out/")
 TEAMS_COLORS = px.colors.qualitative.Prism
 
 def unify_legend(fig):
+    """
+        Reduce the legend so that legend icons are only showed once
+        and not once per team
+    """
     # https://stackoverflow.com/questions/26939121/how-to-avoid-duplicate-legend-labels-in-plotly-or-pass-custom-legend-labels
     names = set()
     fig.for_each_trace(
         lambda trace:
             trace.update(showlegend=False)
             if (trace.name in names) else names.add(trace.name))
+
+
 @time_this
 @app.callback(
-    # Output('position_dropdown', 'value'),
-    # Output('position_dropdown', 'options'),
     Output('player_dropdown', 'value'),
     Output('player_dropdown', 'options'),
     Input('position_dropdown', 'value'),
-    Input('position_dropdown', 'options'),
+    Input('position_dropdown', 'options')
 )
 def update_dropdowns(position, all_positions):
+    """
+        Updates the players dropdown depending on the selected position
+    """
     if position == "All":
-        all_positions.remove(position)
+        all_positions.remove(position)  # All is an self added position, it isn't in the database
         players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["general_position"].isin(all_positions)].unique()
     else:
         players = all_df["info"].sort_values("name")["name"].loc[all_df["info"]["general_position"] == position].unique()
@@ -49,8 +56,10 @@ def update_dropdowns(position, all_positions):
 
 
 @time_this
-# method to find a player's id, given his name
 def get_id_from_name(player_name):
+    """
+        Utility method to get the id of a player from his name
+    """
     ids = all_df["info"]["id"]
     names = all_df["info"]["name"]
     for i in range (0, np.size(names)):
@@ -58,22 +67,28 @@ def get_id_from_name(player_name):
             return ids[i]
     raise ValueError(f"{player_name} is not a valid player")
 
+
 @time_this
-# method to find a player's id, given his name
 def get_name_from_id(player_id):
+    """
+        Utility method to get the name of a player from his id
+    """
     player_row = all_df["info"].loc[all_df["info"]["id"] == player_id]
     if len(player_row) == 0:
         raise ValueError(f"{player_id} is not a valid player")
     return player_row.iloc[0]["name"]
 
+
 def get_team_colors(teams):
+    """
+        Generate a team: color dictionary based on the teams of the player
+    """
     team_colors = {}
-    cnt = 0
-    for team in teams:
-            if (not (team in list(team_colors.keys()))):
-                    team_colors[team] =  TEAMS_COLORS[cnt]
-                    cnt += 1
+    for cnt, team in enumerate(teams):
+        if not team_colors.get(team):
+            team_colors[team] =  TEAMS_COLORS[cnt]
     return team_colors
+
 
 @time_this
 @app.callback(
@@ -81,6 +96,10 @@ def get_team_colors(teams):
     Input('player_dropdown', 'value'),
 )
 def plot_player_goals(player_name):
+    """
+        Returns the figure comparing the scored goals with the scoring percentage
+        Note: The scoring percentage is defined by the number of goals per shot on target
+    """
     player_id = get_id_from_name(player_name)
     try:
         player_df = all_df["shooting"].loc[all_df["shooting"]["id"] == player_id]
@@ -90,8 +109,8 @@ def plot_player_goals(player_name):
         team_colors = get_team_colors(teams_unique)
         idx_change_of_teams = 0
 
-        for i in range (1, len(teams)+1):
-            if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:
+        for i in range (1, len(teams)+1):  # iterating in all the teams
+            if i == len(teams) or teams.iloc[i] != teams.iloc[i-1]:  # whenever the team changes or it's the end of the list
                 fig.add_trace(
                     go.Bar(
                         name = f"Goals",
@@ -111,7 +130,7 @@ def plot_player_goals(player_name):
                         secondary_y = True,
                 )
                 idx_change_of_teams = i
-        fig.update_xaxes(title_text = "Season", fixedrange=True)
+        fig.update_xaxes(title_text = "Season", fixedrange=True)  # fixedrange avoid unwanted zooming
         fig.update_yaxes(title_text = "Goals", secondary_y = False, fixedrange=True)
         fig.update_yaxes(title_text = "Percentage", secondary_y = True, fixedrange=True)
         fig.update_layout(
@@ -129,12 +148,16 @@ def plot_player_goals(player_name):
     unify_legend(fig)
     return fig
 
+
 @time_this
 @app.callback(
     Output('plot_a_player_cards_seasons', 'figure'),
     Input('player_dropdown', 'value'),
 )
 def plot_a_player_cards_seasons(player_name):
+    """
+        Returns the figure showing the amount of yellow & red cards gotten by the player throughout the seasons
+    """
     player_id = get_id_from_name(player_name)
     player_misc_df = all_df["misc"].loc[all_df["misc"]["id"] == player_id]
 
@@ -161,12 +184,17 @@ def plot_a_player_cards_seasons(player_name):
     fig.update_yaxes(fixedrange=True)
     return fig
 
+
 @time_this
 @app.callback(
     Output('plot_a_player_fouls_cards_seasons', 'figure'),
     Input('player_dropdown', 'value'),
 )
 def plot_a_player_fouls_cards_seasons(player_name):
+    """
+        Returns the figure comparing the amount of fouls that the player did and
+        the amount of cards that he got
+    """
     player_id = get_id_from_name(player_name)
     player_misc_df = all_df["misc"].loc[all_df["misc"]["id"] == player_id]
     player_misc_df["cards"] = player_misc_df["cards_red"] + player_misc_df["cards_yellow"]
@@ -202,11 +230,15 @@ def plot_a_player_fouls_cards_seasons(player_name):
     Input('player_dropdown', 'value'),
 )
 def get_player_weight_height(player_name):
+    """
+        Returns the weight, the height and the specific position of a player
+    """
     player_row = all_df["info"].loc[all_df['info']['name'] == player_name]
     height = player_row.iloc[0]["height"]
     weight = player_row.iloc[0]["weight"]
     position = player_row.iloc[0]['position']
     return f"Height: {height} cm", f"Weight: {weight} kg", f"Position: {position}"
+
 
 @time_this
 @app.callback(
@@ -214,6 +246,9 @@ def get_player_weight_height(player_name):
     Input('player_dropdown', 'value'),
 )
 def get_player_club_evolution(player_name):
+    """
+        Returns a pie chart showing every club the player has played in during his career
+    """
     player_id = get_id_from_name(player_name)
     player_misc_df = all_df["misc"].loc[all_df["misc"]["id"] == player_id]
     figure = go.Figure()
@@ -246,12 +281,15 @@ def get_player_club_evolution(player_name):
     Input('player_dropdown', 'value'),
 )
 def plot_player_games_played(player_name):
+    """
+        Returns the figure showing the number of games played by a certain player
+        and the average minutes he played per game
+    """
     player_id = get_id_from_name(player_name)
     try:
         player_df = all_df["playing_time"].loc[all_df["playing_time"]["id"] == player_id]
         fig = make_subplots(specs=[[{"secondary_y": True}]])
         teams = player_df['squad']
-        print(teams)
         teams_unique = np.unique(player_df['squad'])
         team_colors = get_team_colors(teams_unique)
         idx_change_of_teams = 0
@@ -295,12 +333,17 @@ def plot_player_games_played(player_name):
     unify_legend(fig)
     return fig
 
+
 @time_this
 @app.callback(
     Output('plot_a_player_tackles', 'figure'),
     Input('player_dropdown', 'value'),
 )
 def get_player_tackles(player_name):
+    """
+        Returns the figure comparing all the tackles of a player
+        to the ones that he won
+    """
     player_id = get_id_from_name(player_name)
     player_def_df = all_df["defense"].loc[all_df["defense"]["id"] == player_id]
 
@@ -345,12 +388,17 @@ def get_player_tackles(player_name):
     unify_legend(fig)
     return fig
 
+
 @time_this
 @app.callback(
     Output('plot_a_player_assists', 'figure'),
     Input('player_dropdown', 'value')
 )
 def get_player_assists(player_name):
+    """
+        Returns the figure comparing the number of passes of player did
+        to the number of assists that he did
+    """
     player_id = get_id_from_name(player_name)
     player_pass_df = all_df["passing"].loc[all_df["passing"]["id"] == player_id]
 
@@ -405,6 +453,10 @@ def get_player_assists(player_name):
 
 
 def plot_gk(player_name, category="clean sheets"):
+    """
+        Keeper graphs method
+        Returns the keeper figure corresponding to the category passed as parameter
+    """
     player_id = get_id_from_name(player_name)
     player_df = all_df["keeper"].loc[all_df["keeper"]["id"] == player_id]
 
@@ -465,12 +517,16 @@ def plot_gk(player_name, category="clean sheets"):
     unify_legend(fig)
     return fig
 
+
 @time_this
 @app.callback(
     Output('plot_clean_sheets', 'figure'),
     Input('player_dropdown', 'value')
 )
 def plot_clean_sheets(player_name):
+    """
+        complementary function for plot_gk in order for the callback to work properly
+    """
     return plot_gk(player_name, 'clean sheets')
 
 
@@ -480,6 +536,9 @@ def plot_clean_sheets(player_name):
     Input('player_dropdown', 'value')
 )
 def plot_saves(player_name):
+    """
+        complementary function for plot_gk in order for the callback to work properly
+    """
     return plot_gk(player_name, 'saves')
 
 
@@ -489,26 +548,24 @@ def plot_saves(player_name):
     Input('player_dropdown', 'value')
 )
 def plot_penalties(player_name):
+    """
+        complementary function for plot_gk in order for the callback to work properly
+    """
     return plot_gk(player_name, 'penalties')
 
+
 @app.callback(
-    # Output('plot_a_player_fouls_cards_seasons', 'style'),
-    # Output('plot_a_player_tackles', 'style'),
-
-
-
     Output('info_graphs', 'style'),
     Output('striker_graphs', 'style'),
     Output('defender_graphs', 'style'),
-    #Output('plot_a_player_cards_seasons', 'style'),
-
-
     Input('graph_type', 'value'),
 )
 def display_graph(graph_type):
+    """
+        Returns a css attribute in order to hide or show certain graphs
+    """
     no_display = {"display": "none"}
     display = {"display": "flex"}
-    # plot_player_games_played, plot_a_player_cards_seasons, plot_a_player_assists, plot_player_goals, plot_a_player_tackles, plot_a_player_fouls_cards_seasons
     if graph_type == "ATT":
         return  display, display, no_display
     elif graph_type == "DEF":
@@ -516,6 +573,9 @@ def display_graph(graph_type):
 
 
 def create_card(title, graph_id):
+    """
+        Creates a card around a graph
+    """
     return dbc.Card([
         dbc.CardBody([
             html.H4(f"{title}"),
@@ -523,15 +583,21 @@ def create_card(title, graph_id):
         ])
     ], className="mb-4", style={"background-color":"#f8f9fa"})
 
+
 # modify Pages
 @app.callback(
     Output('page-content', 'children'),
     [Input('url', 'pathname')]
 )
 def display_page(pathname):
-    if pathname == "/" :
+    """
+        Handles the url modifications in other terms, the multipage functionality of the platform
+        It returns the html objects that will be rendered
+    """
+    if pathname == "/" :  # Home page with the soccer field
         image_filename = "assets/soccerfield.png"
-        soccerfield = base64.b64encode(open(image_filename, 'rb').read())
+        # https://community.plotly.com/t/png-image-not-showing/15713
+        soccerfield = base64.b64encode(open(image_filename, 'rb').read())  # tricky way to display images without loading an entire assets folder
         return html.Div(children=[
             html.Div([  dcc.Link(html.H1(children='Soccer Statistics', className="header-title"), className="link", href="/"),
             html.H3(children="This website contains statistics about ~3000 (ex)players in the 5 best leagues in Europe.", className="header-description"),
@@ -564,7 +630,7 @@ def display_page(pathname):
         position_text = {"/midfielder": "Midfielders", "/keeper": "Goal Keepers", "/defender": "Defenders", "/striker": "Strikers"}
         position_shortcut = position_shortcuts[pathname]
         positions = all_df["info"].loc[all_df["info"]["general_position"].str.contains(position_shortcut)].sort_values("general_position")["general_position"].unique().tolist()
-        positions.insert(0, "All")
+        positions.insert(0, "All")  # adds an "all" category to search between all specific positions
         positions = np.array(positions)
         if position_shortcut == "G":  # the goalkeeper has very specific stats
             gk_graphs = [
@@ -582,7 +648,7 @@ def display_page(pathname):
             values = {"/midfielder": "ATT", "/defender": "DEF", "/striker": "ATT"}
             gk_graphs = None
 
-
+            # two types of graphs: offensive & defensive
             graph_type = dbc.Card(
                         [
                             dbc.CardBody(
@@ -708,8 +774,4 @@ app.layout = html.Div([
 ])
 
 if __name__ == '__main__':
-    # generate_color(all_df["info"]["club"])
-    # for name, df in all_df.items():
-    #     if name != 'info':
-    #         generate_color(df["squad"])
     app.run_server(debug=False, threaded=True)
