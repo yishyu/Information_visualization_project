@@ -346,8 +346,6 @@ def get_player_tackles(player_name):
     """
     player_id = get_id_from_name(player_name)
     player_def_df = all_df["defense"].loc[all_df["defense"]["id"] == player_id]
-
-    #fig = go.Figure()
     fig = make_subplots(specs=[[{"secondary_y": True}]])
     teams = player_def_df['squad']
     teams_unique = np.unique(player_def_df['squad'])
@@ -361,7 +359,7 @@ def get_player_tackles(player_name):
                     x = player_def_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_def_df.iloc[idx_change_of_teams:i, :]["tackles"].tolist(),
                     marker_color = team_colors[teams.iloc[i-1]]
-                )#,secondary_y = False,
+                )
             )
             fig.add_trace(
                 go.Scatter(
@@ -369,12 +367,11 @@ def get_player_tackles(player_name):
                     x = player_def_df.iloc[idx_change_of_teams:i, :]["season"].tolist(),
                     y = player_def_df.iloc[idx_change_of_teams:i, :]["tackles_won"].tolist(),
                     marker_color="#000000"
-                )#,secondary_y = True,
+                )
             )
             idx_change_of_teams = i
     fig.update_xaxes(title_text = "Season", fixedrange=True)
     fig.update_yaxes(title_text = "Number of Tackles", fixedrange=True)
-    #fig.update_yaxes(title_text = "Number of Tackles won",secondary_y = True)
     fig.update_layout(
         legend = dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         paper_bgcolor='#f8f9fa',
